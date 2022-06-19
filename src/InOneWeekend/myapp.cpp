@@ -98,16 +98,15 @@ int main(){
     Kernel::InitCL();
     Kernel kernel("src/InOneWeekend/raytracing.cl", "raytrace");
     // Image
-    Timer t;
-    const auto aspect_ratio = 16.0 / 9.0;
+    
+    const float aspect_ratio = 16.0 / 9.0;
     const int image_width = 1080;
-    const int image_height = static_cast<int>(image_width / aspect_ratio);
-    const int samples_per_pixel = 10;
+    const int image_height = 607;
+    const int samples_per_pixel = 1;
     const int max_depth = 50;
+    const static int nPixels = image_width * image_height;
 
-    // World
 
-    auto world = random_scene();
 
     // Camera
 
@@ -119,27 +118,56 @@ int main(){
 
     camera cam(lookfrom, lookat, vup, 20, aspect_ratio, aperture, dist_to_focus);
 
+    // World
+    auto world = random_scene();
+
+    // GPU Buffers
+    cl_mem colorBuffer = clCreateBuffer(Kernel::GetContext(), CL_MEM_WRITE_ONLY, nPixels * 4 * 3, 0, 0);
+    kernel.SetArgument(0, &colorBuffer);
+    kernel.SetArgument(1, image_width);
+    kernel.SetArgument(2, image_height);
+    kernel.SetArgument(3, cam.get_vertical());
+    kernel.SetArgument(4, cam.get_horizontal());
+    kernel.SetArgument(5, cam.get_lower_left_corner());
+    kernel.SetArgument(6, cam.get_origin());
+    
+
+   
+    float3* pixel_color = new float3[nPixels];
+
+
+    kernel.Run2D(int2(image_width, image_height), int2(1, 1));
+    clFinish(kernel.GetQueue());
+    cl_int error;
+    error = clEnqueueReadBuffer(Kernel::GetQueue(), colorBuffer, true, 0, nPixels * 4  * 3, &pixel_color[0], 0, 0, 0);
+    std::cerr << error << ' ' << std::flush;
     // Render
+    /*for (int k = 0; k < 1; k++)
+    {*/
+        Timer t;
+        std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
 
-    std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
-
-    for (int j = image_height - 1; j >= 0; --j) {
-        //std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
-        for (int i = 0; i < image_width; ++i) {
-            color pixel_color(0, 0, 0);
-            for (int s = 0; s < samples_per_pixel; ++s) {
-                auto u = (i + random_double()) / (image_width - 1);
-                auto v = (j + random_double()) / (image_height - 1);
-                ray r = cam.get_ray(u, v);
-                pixel_color += ray_color(r, world, max_depth);
+        for (int j = image_height - 1; j >= 0; --j) {
+            //std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
+            for (int i = 0; i < image_width; ++i) {
+                /*color pixel_color(0, 0, 0);
+                for (int s = 0; s < samples_per_pixel; ++s) {
+                    auto u = (i + random_double()) / (image_width - 1);
+                    auto v = (j + random_double()) / (image_height - 1);
+                    ray r = cam.get_ray(u, v);
+                    pixel_color += ray_color(r, world, max_depth);
+                }*/
+                int index = j * image_width + i;
+                write_color(std::cout, color(pixel_color[index].x, pixel_color[index].y, pixel_color[index].z), samples_per_pixel);
             }
-            write_color(std::cout, pixel_color, samples_per_pixel);
         }
-    }
-    static float frameTimeAvg = 10.0f; // estimate
-    frameTimeAvg = 0.95f * frameTimeAvg + 0.05f * t.elapsed() * 1000;
-    std::cerr << "frame time:" << frameTimeAvg << " msec" << std::endl;
-    std::cerr << "\nDone.\n";
+       
+        std::cerr << "frame time:" << t.elapsed() * 1000 << " msec" << std::endl;
+        std::cerr << "\nDone.\n";
+       /* delete t;
+        t = NULL;*/
+    /*}*/
+   
     system("pause");
 
 }

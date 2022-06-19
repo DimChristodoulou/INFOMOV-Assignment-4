@@ -57,6 +57,24 @@ class camera {
                 random_double(time0, time1)
             );
         }
+        float3 get_horizontal()
+        {
+            return float3(horizontal.x(), horizontal.y(), horizontal.z());
+        }
+
+        float3 get_vertical()
+        {
+            return float3(vertical.x(), vertical.y(), vertical.z());
+        }
+        float3 get_origin()
+        {
+            return float3(origin.x(), origin.y(), origin.z());
+        }
+
+        float3 get_lower_left_corner()
+        {
+            return float3(lower_left_corner.x(), lower_left_corner.y(), lower_left_corner.z());
+        }
 
     private:
         point3 origin;
