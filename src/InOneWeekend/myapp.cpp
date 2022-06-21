@@ -102,7 +102,7 @@ int main(){
     const float aspect_ratio = 16.0 / 9.0;
     const int image_width = 1080;
     const int image_height = 607;
-    const int samples_per_pixel = 32;
+    const int samples_per_pixel = 4;
     const int max_depth = 50;
     static int nPixels = image_width * image_height;
 
@@ -136,8 +136,8 @@ int main(){
     kernel.SetArgument(5, cam.get_lower_left_corner());
     kernel.SetArgument(6, cam.get_origin());
     kernel.SetArgument(7, max_depth);
-
-    kernel.Run(image_width * image_height * samples_per_pixel, samples_per_pixel);
+    Timer t;
+    kernel.Run(image_width * image_height * samples_per_pixel/*, samples_per_pixel*/);
     clFinish(kernel.GetQueue());
     
     error = clEnqueueReadBuffer(Kernel::GetQueue(), colorBuffer, true, 0, nPixels * sizeof(float4), pixel_color, 0, 0, 0);
@@ -146,7 +146,7 @@ int main(){
     // Render
     /*for (int k = 0; k < 1; k++)
     {*/
-        Timer t;
+        
         std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
 
         for (int j = image_height - 1; j >= 0; --j) {
@@ -161,7 +161,7 @@ int main(){
                 }*/
                 //write_color(std::cout, pixel_color, samples_per_pixel);
                 int index = j * image_width + i;
-                write_color(std::cout, color(pixel_color[index].x, pixel_color[index].y, pixel_color[index].z), samples_per_pixel);
+                //write_color(std::cout, color(pixel_color[index].x, pixel_color[index].y, pixel_color[index].z), samples_per_pixel);
             }
         }
        
