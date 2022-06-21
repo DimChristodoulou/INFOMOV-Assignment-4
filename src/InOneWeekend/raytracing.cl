@@ -7,7 +7,14 @@ struct Ray
 };
 
 
+float4 ray_color(Ray* r)
+{
+	hit_record rec;
+	if (hit(0.001, 10000000000.0, rec))
+	{
 
+	}
+}
 
 __kernel void raytrace(__global float4* colorBuffer,
 						int image_width,
