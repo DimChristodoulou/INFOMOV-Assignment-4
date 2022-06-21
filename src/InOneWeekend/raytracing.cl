@@ -20,10 +20,13 @@ typedef struct cl_material {
 typedef struct cl_hit_record {
 	float3 p;
 	float3 normal;
-	float2 padding0;
+	float t;
+	float padding0;
 	Material mat;
 	bool front_face;
-	bool3 padding1;
+	bool padding1;
+	bool padding2;
+	bool padding3;
 } hit_record;
 
 typedef struct cl_sphere
@@ -31,7 +34,6 @@ typedef struct cl_sphere
 	float3 center;
 	float radius;
 	Material mat;
-
 } Sphere;
 
 
@@ -101,34 +103,55 @@ float3 random_in_unit_sphere(uint *seed) {
     }*/
 }
 
-void set_face_normal(hit_record* rec, Ray* ray, float3 outward_normal, bool )
+void set_face_normal(hit_record* rec, Ray* ray, float3 outward_normal)
 {
 	rec->front_face = dot(ray->direction, outward_normal) < 0;
 	rec->normal = rec->front_face ? outward_normal : -outward_normal;
 }
+float3 random_unit_vector(uint *seed) {
+    return UnitVector(random_in_unit_sphere(seed));
+}
+
 float SquaredLength(float3 vec) {
 	return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z;
 }
 
-bool scatter(Material *mat, Ray ray, hit_record *hit, float3 *attenuation, Ray *scattered){
+bool near_zero(float3 vec) {
+	// Return true if the vector is close to zero in all dimensions.
+	const float s = 1e-8f;
+	return (fabs(vec.x) < s) && (fabs(vec.y) < s) && (fabs(vec.z) < s);
+}
+
+bool scatter(Ray *ray, hit_record *hit, float3 *attenuation, Ray *scattered, uint *seed){
 	int id = get_global_id(0);
 
 	// Lambertian
-	if(mat->materialType == 0){
-		
+	if(hit->mat.materialType == 0){
+		float3 scatter_direction = hit->normal + random_unit_vector(seed);
+
+		// Catch degenerate scatter direction
+		if (near_zero(scatter_direction)){
+			scatter_direction = hit->normal;
+		}
+
+		scattered->origin = hit->p;
+		scattered->direction = scatter_direction;
+		*attenuation = hit->mat.albedo;
+		return true;
 	}
 	// Metal
-	else if(mat->materialType == 1){
+	else if(hit->mat.materialType == 1){
 	}
 	// Dielectric
-	else if(mat->materialType == 2){
+	else if(hit->mat.materialType == 2){
 	}
 }
+
 bool sphere_hit(Sphere* sphere,
-	Ray* r, float t_min, float t_max, hit_record* rec)
+	Ray* ray, float t_min, float t_max, hit_record* rec)
 {
 	float3 center = sphere->center;
-	float3 radius = sphere->radius;
+	float radius = sphere->radius;
 	float3 oc = ray->origin - center;
 	float a = SquaredLength(ray->direction);
 	float half_b = dot(oc, ray->direction);
@@ -166,11 +189,11 @@ bool world_hit(Ray* ray, float t_min, float t_max, hit_record* rec, int nSpheres
 	for (int i = 0; i < nSpheres; i++)
 	{
 		Sphere sphere = sphereBuffer[i];
-		if (sphere_hit(&sphere, t_min, t_max, rec))
+		if (sphere_hit(&sphere, ray, t_min, t_max, rec))
 		{
 			hit_anything = true;
 			closest_so_far = temp_rec.t;
-			(*rec) = temp_rec
+			(*rec) = temp_rec;
 		}
 	}
 
@@ -178,18 +201,19 @@ bool world_hit(Ray* ray, float t_min, float t_max, hit_record* rec, int nSpheres
 }
 
 
-float4 ray_color(Ray* r, int nSpheres, Sphere* sphereBuffer)
+float4 ray_color(Ray* r, int nSpheres, Sphere* sphereBuffer, uint *seed)
 {
 	hit_record rec;
 	if (world_hit(r, 0.001, 10000000000.0, &rec, nSpheres, sphereBuffer))
 	{
 		float4 attenuation;
 		Ray scattered;
-		if (scatter(r, rec, &attenuation, &scattered))
+		if (scatter(r, &rec, &attenuation, &scattered, seed))
 			return attenuation;
 		return (float4)(0.0, 0.0, 0.0, 0.0);
 	}
-	float3 unit_direction = normalize(ray.direction);
+
+	float3 unit_direction = normalize(r->direction);
 	float t = 0.5 * (unit_direction.y + 1.0);
 	return (1.0 - t)* (float4)(1.0, 1.0, 1.0, 0.0) + t * (float4)(0.5, 0.7, 1.0, 0.0);
 }
@@ -213,7 +237,7 @@ __kernel void raytrace(	__global float4* colorBuffer,
 
 	//printf("col %d, row %d , colorBuffer %d\n", col, row, id);
 
-	// uint seed = Next(0x12345678 + id);
+	uint seed = Next(0x12345678 + id);
 	// float3 dir = (float3)(0.0f, 0.0f, 0.0f);
 	// if(get_local_id(0)==0){
 	// 	float3 dir = random_in_unit_sphere(&seed);
@@ -226,12 +250,14 @@ __kernel void raytrace(	__global float4* colorBuffer,
 	ray.direction = lower_left_corner + u * horizontal + v * vertical - origin;
 	ray.t = 0.0001;
 
-	float3 unit_direction = normalize(ray.direction);
-	float t = 0.5 * (unit_direction.y + 1.0);
+	//float3 unit_direction = normalize(ray.direction);
+	//float t = 0.5 * (unit_direction.y + 1.0);
+	float4 color = (0.7f, 0.65f, 0.9f, 0.0f);
+	
 	__local float4 _sharedMemory[32];
-	_sharedMemory[get_local_id(0)] =  (1.0 - t) * (float4)(1.0, 1.0, 1.0, 0.0) + t * (float4)(0.5, 0.7, 1.0, 0.0);
+	_sharedMemory[get_local_id(0)] = ray_color(&ray, nSpheres, sphereBuffer, &seed);
 	barrier(CLK_LOCAL_MEM_FENCE);
-	float4 color = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
+	
 	if (get_local_id(0) == 0)
 	{
 		for (int i = 0; i < 32; i++)
@@ -239,6 +265,6 @@ __kernel void raytrace(	__global float4* colorBuffer,
 		colorBuffer[id] = color;
 	}
 		 
-	printf("%f\n", color);
+	// printf("%f\n", color);
 	
 }

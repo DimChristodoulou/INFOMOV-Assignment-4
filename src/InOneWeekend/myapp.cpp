@@ -21,6 +21,21 @@
 #include <iostream>
 
 
+typedef struct cl_material {
+    float3 albedo;
+    float fuzz;
+    float ir;
+    float3 padding0;
+    int materialType;
+    int3 padding1;	// 0 for lambertian, 1 for metal, 2 for dielectric
+} Material;
+
+typedef struct cl_sphere
+{
+    float3 center;
+    float radius;
+    Material mat;
+} CL_Sphere;
 
 color ray_color(const ray& r, const hittable& world, int depth) {
     hit_record rec;
@@ -65,28 +80,28 @@ hittable_list random_scene() {
                 }
                 else if (choose_mat < 0.95) {
                     // metal
-                    auto albedo = color::random(0.5, 1);
+                    /*auto albedo = color::random(0.5, 1);
                     auto fuzz = random_double(0, 0.5);
                     sphere_material = make_shared<metal>(albedo, fuzz);
-                    world.add(make_shared<sphere>(center, 0.2, sphere_material));
+                    world.add(make_shared<sphere>(center, 0.2, sphere_material));*/
                 }
                 else {
                     // glass
-                    sphere_material = make_shared<dielectric>(1.5);
-                    world.add(make_shared<sphere>(center, 0.2, sphere_material));
+                    /*sphere_material = make_shared<dielectric>(1.5);
+                    world.add(make_shared<sphere>(center, 0.2, sphere_material));*/
                 }
             }
         }
     }
 
-    auto material1 = make_shared<dielectric>(1.5);
-    world.add(make_shared<sphere>(point3(0, 1, 0), 1.0, material1));
+    /*auto material1 = make_shared<dielectric>(1.5);
+    world.add(make_shared<sphere>(point3(0, 1, 0), 1.0, material1));*/
 
     auto material2 = make_shared<lambertian>(color(0.4, 0.2, 0.1));
     world.add(make_shared<sphere>(point3(-4, 1, 0), 1.0, material2));
 
-    auto material3 = make_shared<metal>(color(0.7, 0.6, 0.5), 0.0);
-    world.add(make_shared<sphere>(point3(4, 1, 0), 1.0, material3));
+    /*auto material3 = make_shared<metal>(color(0.7, 0.6, 0.5), 0.0);
+    world.add(make_shared<sphere>(point3(4, 1, 0), 1.0, material3));*/
 
     return world;
 }
@@ -100,9 +115,9 @@ int main(){
     // Image
     
     const float aspect_ratio = 16.0 / 9.0;
-    const int image_width = 20;
-    const int image_height = 20;
-    const int samples_per_pixel = 4;
+    const int image_width = 1080;
+    const int image_height = 607;
+    const int samples_per_pixel = 1;
     const int max_depth = 50;
     static int nPixels = image_width * image_height;
 
@@ -118,18 +133,35 @@ int main(){
     // World
     auto world = random_scene();
 
+    CL_Sphere* spheres = new CL_Sphere[world.objects.size()];
+
+    for (size_t i = 0; i < world.objects.size(); i++)
+    {
+        sphere *obj = dynamic_cast<sphere*>(world.objects[i].get());
+        spheres[i].center = float3(obj->center.x(), obj->center.y(), obj->center.z());
+        spheres[i].radius = obj->radius;
+        
+        lambertian* mat = dynamic_cast<lambertian*>(obj->mat_ptr.get());
+        spheres[i].mat.albedo = float3(mat->albedo.x(), mat->albedo.y(), mat->albedo.z());
+        spheres[i].mat.materialType = 0;
+    }
+
     cl_int error;
     float4* pixel_color = new float4[nPixels];
-
+    //std::cerr << sizeof(CL_Sphere) << std::endl;
+    //std::cerr << sizeof(Material) << " " << sizeof(float3) << " " << sizeof(float) << std::endl;
     // GPU Buffers
     cl_mem colorBuffer = clCreateBuffer(Kernel::GetContext(), CL_MEM_READ_WRITE, nPixels * sizeof(float4), 0, 0);
+    cl_mem sphereBuffer = clCreateBuffer(Kernel::GetContext(), CL_MEM_READ_WRITE, nPixels * sizeof(float4), 0, 0);
     
-    /*error = clEnqueueWriteBuffer(Kernel::GetQueue(), colorBuffer, true, 0, nPixels * sizeof(float4), pixel_color, 0, 0, 0);
-    std::cerr << error << ' ' << std::flush;
+    //error = clEnqueueWriteBuffer(Kernel::GetQueue(), colorBuffer, true, 0, nPixels * sizeof(float4), pixel_color, 0, 0, 0);
+    error = clEnqueueWriteBuffer(Kernel::GetQueue(), sphereBuffer, true, 0, world.objects.size() * sizeof(CL_Sphere), spheres, 0, 0, 0);
+    /*std::cerr << error << ' ' << std::flush;
     std::cerr << sizeof(float4) << " " << sizeof(float) << std::flush;*/
+    int numOfSpheres = world.objects.size();
 
     kernel.SetArgument(0, &colorBuffer);
-    kernel.SetArgument(1, NULL);        // TODO: SET THIS TO A BUFFER FOR SPHERE DATA
+    kernel.SetArgument(1, &sphereBuffer);        // TODO: SET THIS TO A BUFFER FOR SPHERE DATA
     kernel.SetArgument(2, image_width);
     kernel.SetArgument(3, image_height);
     kernel.SetArgument(4, cam.get_vertical());
@@ -137,7 +169,7 @@ int main(){
     kernel.SetArgument(6, cam.get_lower_left_corner());
     kernel.SetArgument(7, cam.get_origin());
     kernel.SetArgument(8, max_depth);
-    kernel.SetArgument(9, 5);   // TODO: SET THIS TO NUMBER OF SPHERES
+    kernel.SetArgument(9, numOfSpheres);           // TODO: SET THIS TO NUMBER OF SPHERES
     Timer t;
     kernel.Run(image_width * image_height * samples_per_pixel, samples_per_pixel);
     clFinish(kernel.GetQueue());
@@ -163,7 +195,7 @@ int main(){
                 }*/
                 //write_color(std::cout, pixel_color, samples_per_pixel);
                 int index = j * image_width + i;
-                //write_color(std::cout, color(pixel_color[index].x, pixel_color[index].y, pixel_color[index].z), samples_per_pixel);
+                write_color(std::cout, color(pixel_color[index].x, pixel_color[index].y, pixel_color[index].z), samples_per_pixel);
             }
         }
        

@@ -129,12 +129,12 @@ using namespace Tmpl8;
 struct ALIGN( 8 ) int2 { int2() = default; int2( int a, int b ) : x( a ), y( b ) {} int x, y; };
 struct ALIGN( 8 ) uint2 { uint2() = default; uint2( int a, int b ) : x( a ), y( b ) {} uint x, y; };
 struct ALIGN( 8 ) float2 { float2() = default; float2( float a, float b ) : x( a ), y( b ) {} float x, y; };
-struct ALIGN( 16 ) int3 { int3() = default; int3( int a, int b, int c ) : x( a ), y( b ), z( c ) {} int x, y, z; int dummy; };
+struct /*ALIGN( 16 )*/ int3 { int3() = default; int3( int a, int b, int c ) : x( a ), y( b ), z( c ) {} int x, y, z; int dummy; };
 struct ALIGN( 16 ) uint3 { uint3() = default; uint3( uint a, uint b, uint c ) : x( a ), y( b ), z( c ) {} uint x, y, z; uint dummy; };
-struct ALIGN( 16 ) float3 { float3() = default; float3( float a, float b, float c ) : x( a ), y( b ), z( c ) {} float x, y, z; float dummy; };
+struct /*ALIGN( 16 )*/ float3 { float3() = default; float3( float a, float b, float c ) : x( a ), y( b ), z( c ) {} float x, y, z; float dummy; };
 struct ALIGN( 16 ) int4 { int x, y, z, w; };
 struct ALIGN( 16 ) uint4 { uint x, y, z, w; };
-struct ALIGN( 16 ) float4 { float x, y, z, w; };
+struct /*ALIGN( 16 )*/ float4 { float x, y, z, w; };
 struct ALIGN( 4 ) uchar4 { uchar x, y, z, w; };
 
 // fatal error reporting (with a pretty window)
