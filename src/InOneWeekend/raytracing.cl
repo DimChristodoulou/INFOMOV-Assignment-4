@@ -33,8 +33,6 @@ typedef struct cl_sphere
 } Sphere;
 
 
-
-
  uint Next(uint u)
 {
 	uint v = u * 3935559000370003845 + 2691343689449507681;
@@ -51,6 +49,7 @@ typedef struct cl_sphere
 
 	return v;
 }
+
 // RNG - Marsaglia's xor32
 uint RandomUInt(uint *seed)
 {
@@ -121,11 +120,11 @@ bool scatter(Material *mat, Ray ray, hit_record *hit, float3 *attenuation, Ray *
 
 bool sphere_hit(Ray r, float t_min, float t_max, hit_record* rec)
 {
-	float3 oc = r.origin - 
+	//float3 oc = r.origin - 
 }
 
 
-bool world_hit(Ray* ray, float t_min, float t_max, hit_record* rec)
+bool world_hit(Ray* ray, float t_min, float t_max, hit_record* rec, int nSpheres, Sphere* sphereBuffer)
 {
 	hit_record temp_rec;
 	bool hit_anything = false;
@@ -133,7 +132,7 @@ bool world_hit(Ray* ray, float t_min, float t_max, hit_record* rec)
 	for (int i = 0; i < nSpheres; i++)
 	{
 		Sphere sphere = sphereBuffer[i];
-		if (sphere_hit(sphere.center, sphere.radius, (*ray), t_min, closest_so_far, temp_rec))
+		if (true)
 		{
 			hit_anything = true;
 			closest_so_far = temp_rec.t;
@@ -143,10 +142,12 @@ bool world_hit(Ray* ray, float t_min, float t_max, hit_record* rec)
 
 	return hit_anything;
 }
-float4 ray_color(Ray* r)
+
+
+float4 ray_color(Ray* r, int nSpheres, Sphere* sphereBuffer)
 {
 	hit_record rec;
-	if (world_hit(r, 0.001, 10000000000.0, &rec))
+	if (world_hit(r, 0.001, 10000000000.0, &rec, nSpheres, sphereBuffer))
 	{
 		float4 attenuation;
 		Ray scattered;
@@ -158,11 +159,9 @@ float4 ray_color(Ray* r)
 	float t = 0.5 * (unit_direction.y + 1.0);
 	rec = r;
 	return (1.0 - t)* (float4)(1.0, 1.0, 1.0, 0.0) + t * (float4)(0.5, 0.7, 1.0, 0.0);
-	
-	
 }
 
-__kernel void raytrace(__global float4* colorBuffer,
+__kernel void raytrace(	__global float4* colorBuffer,
 						__global Sphere* sphereBuffer,
 						int image_width,
 						int image_height,
@@ -181,32 +180,32 @@ __kernel void raytrace(__global float4* colorBuffer,
 
 	//printf("col %d, row %d , colorBuffer %d\n", col, row, id);
 
-	uint seed = Next(0x12345678 + id);
-	float3 dir = (float3)(0.0f, 0.0f, 0.0f);
-	if(get_local_id(0)==0){
-		float3 dir = random_in_unit_sphere(&seed);
-		//dir = (float3)(1, 1, 1);
-		printf(" %u, %f %f, %f\n",get_group_id(0), dir.x, dir.y, dir.z);
-	}
-
-	// Ray ray;
-	// ray.origin = origin;
-	// ray.direction = lower_left_corner + u * horizontal + v * vertical - origin;
-	// ray.t = 0.0001;
-
-	// float3 unit_direction = normalize(ray.direction);
-	// float t = 0.5 * (unit_direction.y + 1.0);
-	// __local float4 _sharedMemory[32];
-	// _sharedMemory[get_local_id(0)] =  (1.0 - t) * (float4)(1.0, 1.0, 1.0, 0.0) + t * (float4)(0.5, 0.7, 1.0, 0.0);
-	// barrier(CLK_LOCAL_MEM_FENCE);
-	// float4 color = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
-	// if (get_local_id(0) == 0)
-	// {
-	// 	for (int i = 0; i < 32; i++)
-	// 		color += _sharedMemory[i];
-	// 	colorBuffer[id] = color;
+	// uint seed = Next(0x12345678 + id);
+	// float3 dir = (float3)(0.0f, 0.0f, 0.0f);
+	// if(get_local_id(0)==0){
+	// 	float3 dir = random_in_unit_sphere(&seed);
+	// 	//dir = (float3)(1, 1, 1);
+	// 	printf(" %u, %f %f, %f\n",get_group_id(0), dir.x, dir.y, dir.z);
 	// }
+
+	Ray ray;
+	ray.origin = origin;
+	ray.direction = lower_left_corner + u * horizontal + v * vertical - origin;
+	ray.t = 0.0001;
+
+	float3 unit_direction = normalize(ray.direction);
+	float t = 0.5 * (unit_direction.y + 1.0);
+	__local float4 _sharedMemory[32];
+	_sharedMemory[get_local_id(0)] =  (1.0 - t) * (float4)(1.0, 1.0, 1.0, 0.0) + t * (float4)(0.5, 0.7, 1.0, 0.0);
+	barrier(CLK_LOCAL_MEM_FENCE);
+	float4 color = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
+	if (get_local_id(0) == 0)
+	{
+		for (int i = 0; i < 32; i++)
+			color += _sharedMemory[i];
+		colorBuffer[id] = color;
+	}
 		 
-	// printf("%f\n", color);
+	printf("%f\n", color);
 	
 }

@@ -129,13 +129,15 @@ int main(){
     std::cerr << sizeof(float4) << " " << sizeof(float) << std::flush;*/
 
     kernel.SetArgument(0, &colorBuffer);
-    kernel.SetArgument(1, image_width);
-    kernel.SetArgument(2, image_height);
-    kernel.SetArgument(3, cam.get_vertical());
-    kernel.SetArgument(4, cam.get_horizontal());
-    kernel.SetArgument(5, cam.get_lower_left_corner());
-    kernel.SetArgument(6, cam.get_origin());
-    kernel.SetArgument(7, max_depth);
+    kernel.SetArgument(1, NULL);        // TODO: SET THIS TO A BUFFER FOR SPHERE DATA
+    kernel.SetArgument(2, image_width);
+    kernel.SetArgument(3, image_height);
+    kernel.SetArgument(4, cam.get_vertical());
+    kernel.SetArgument(5, cam.get_horizontal());
+    kernel.SetArgument(6, cam.get_lower_left_corner());
+    kernel.SetArgument(7, cam.get_origin());
+    kernel.SetArgument(8, max_depth);
+    kernel.SetArgument(9, 5);   // TODO: SET THIS TO NUMBER OF SPHERES
     Timer t;
     kernel.Run(image_width * image_height * samples_per_pixel, samples_per_pixel);
     clFinish(kernel.GetQueue());
