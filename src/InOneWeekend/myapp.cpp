@@ -100,8 +100,8 @@ int main(){
     // Image
     
     const float aspect_ratio = 16.0 / 9.0;
-    const int image_width = 1080;
-    const int image_height = 607;
+    const int image_width = 20;
+    const int image_height = 20;
     const int samples_per_pixel = 4;
     const int max_depth = 50;
     static int nPixels = image_width * image_height;
@@ -137,7 +137,7 @@ int main(){
     kernel.SetArgument(6, cam.get_origin());
     kernel.SetArgument(7, max_depth);
     Timer t;
-    kernel.Run(image_width * image_height * samples_per_pixel/*, samples_per_pixel*/);
+    kernel.Run(image_width * image_height * samples_per_pixel, samples_per_pixel);
     clFinish(kernel.GetQueue());
     
     error = clEnqueueReadBuffer(Kernel::GetQueue(), colorBuffer, true, 0, nPixels * sizeof(float4), pixel_color, 0, 0, 0);
