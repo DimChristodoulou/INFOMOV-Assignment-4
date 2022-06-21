@@ -1,0 +1,16 @@
+-r
+C:\Users\jimiu\Desktop\raytracing.github.io-master\VTune Profiler Results\Raytracing\r001ps
+--stack-stitching
+--data-limit-mb=1000
+--disk-space-limit=0
+--mrte-type=java,dotnet
+--stack-unwind-limit=8388608
+--itt-config=frame
+--stackwalk=offline
+--mrte-mode=auto
+--type=cpu:counters:nostack
+--type=cpu:nostack
+--interval=100
+--app-working-dir=C:\Users\jimiu\Desktop\raytracing.github.io-master\build\Release
+--
+C:\Users\jimiu\Desktop\raytracing.github.io-master\build\Release\inOneWeekend.exe

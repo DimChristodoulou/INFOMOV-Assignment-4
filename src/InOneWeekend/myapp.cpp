@@ -104,12 +104,9 @@ int main(){
     const int image_height = 607;
     const int samples_per_pixel = 1;
     const int max_depth = 50;
-    const static int nPixels = image_width * image_height;
-
-
+    static int nPixels = image_width * image_height;
 
     // Camera
-
     point3 lookfrom(13, 2, 3);
     point3 lookat(0, 0, 0);
     vec3 vup(0, 1, 0);
@@ -121,8 +118,16 @@ int main(){
     // World
     auto world = random_scene();
 
+    cl_int error;
+    float4* pixel_color = new float4[nPixels];
+
     // GPU Buffers
-    cl_mem colorBuffer = clCreateBuffer(Kernel::GetContext(), CL_MEM_WRITE_ONLY, nPixels * 4 * 3, 0, 0);
+    cl_mem colorBuffer = clCreateBuffer(Kernel::GetContext(), CL_MEM_READ_WRITE, nPixels * sizeof(float4), 0, 0);
+    
+    /*error = clEnqueueWriteBuffer(Kernel::GetQueue(), colorBuffer, true, 0, nPixels * sizeof(float4), pixel_color, 0, 0, 0);
+    std::cerr << error << ' ' << std::flush;
+    std::cerr << sizeof(float4) << " " << sizeof(float) << std::flush;*/
+
     kernel.SetArgument(0, &colorBuffer);
     kernel.SetArgument(1, image_width);
     kernel.SetArgument(2, image_height);
@@ -130,17 +135,14 @@ int main(){
     kernel.SetArgument(4, cam.get_horizontal());
     kernel.SetArgument(5, cam.get_lower_left_corner());
     kernel.SetArgument(6, cam.get_origin());
-    
+    kernel.SetArgument(7, max_depth);
 
-   
-    float3* pixel_color = new float3[nPixels];
-
-
-    kernel.Run2D(int2(image_width, image_height), int2(1, 1));
+    kernel.Run(image_width * image_height);
     clFinish(kernel.GetQueue());
-    cl_int error;
-    error = clEnqueueReadBuffer(Kernel::GetQueue(), colorBuffer, true, 0, nPixels * 4  * 3, &pixel_color[0], 0, 0, 0);
+    
+    error = clEnqueueReadBuffer(Kernel::GetQueue(), colorBuffer, true, 0, nPixels * sizeof(float4), pixel_color, 0, 0, 0);
     std::cerr << error << ' ' << std::flush;
+
     // Render
     /*for (int k = 0; k < 1; k++)
     {*/

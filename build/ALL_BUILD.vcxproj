@@ -1,0 +1,213 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="16.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <PreferredToolArchitecture>x64</PreferredToolArchitecture>
+  </PropertyGroup>
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="MinSizeRel|x64">
+      <Configuration>MinSizeRel</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="RelWithDebInfo|x64">
+      <Configuration>RelWithDebInfo</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{CF37FBE3-3025-3E69-8A51-AA9E2E492F06}</ProjectGuid>
+    <WindowsTargetPlatformVersion>10.0.19041.0</WindowsTargetPlatformVersion>
+    <Keyword>Win32Proj</Keyword>
+    <Platform>x64</Platform>
+    <ProjectName>ALL_BUILD</ProjectName>
+    <VCProjectUpgraderObjectName>NoUpgrade</VCProjectUpgraderObjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'" Label="Configuration">
+    <ConfigurationType>Utility</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.20506.1</_ProjectFileVersion>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">$(Platform)\$(Configuration)\$(ProjectName)\</IntDir>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Midl>
+      <AdditionalIncludeDirectories>F:\raytracing.github.io-master\src\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Midl>
+      <AdditionalIncludeDirectories>F:\raytracing.github.io-master\src\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">
+    <Midl>
+      <AdditionalIncludeDirectories>F:\raytracing.github.io-master\src\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">
+    <Midl>
+      <AdditionalIncludeDirectories>F:\raytracing.github.io-master\src\common;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <OutputDirectory>$(ProjectDir)/$(IntDir)</OutputDirectory>
+      <HeaderFileName>%(Filename).h</HeaderFileName>
+      <TypeLibraryName>%(Filename).tlb</TypeLibraryName>
+      <InterfaceIdentifierFileName>%(Filename)_i.c</InterfaceIdentifierFileName>
+      <ProxyFileName>%(Filename)_p.c</ProxyFileName>
+    </Midl>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <CustomBuild Include="F:\raytracing.github.io-master\CMakeLists.txt">
+      <UseUtf8Encoding>Always</UseUtf8Encoding>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Building Custom Rule F:/raytracing.github.io-master/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">setlocal
+"D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\bin\cmake.exe" -SF:/raytracing.github.io-master -BF:/raytracing.github.io-master/build --check-stamp-file F:/raytracing.github.io-master/build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\CMakeCXXInformation.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\CMakeCommonLanguageInclude.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\CMakeGenericSystem.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\CMakeInitializeConfigs.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\CMakeLanguageInformation.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\CMakeRCInformation.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\CMakeSystemSpecificInformation.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\CMakeSystemSpecificInitialize.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\Compiler\CMakeCommonCompilerMacros.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\Compiler\MSVC-CXX.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\Platform\Windows-MSVC-CXX.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\Platform\Windows-MSVC.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\Platform\Windows.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\Platform\WindowsPaths.cmake;F:\raytracing.github.io-master\build\CMakeFiles\3.22.2\CMakeCXXCompiler.cmake;F:\raytracing.github.io-master\build\CMakeFiles\3.22.2\CMakeRCCompiler.cmake;F:\raytracing.github.io-master\build\CMakeFiles\3.22.2\CMakeSystem.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">F:\raytracing.github.io-master\build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Building Custom Rule F:/raytracing.github.io-master/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">setlocal
+"D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\bin\cmake.exe" -SF:/raytracing.github.io-master -BF:/raytracing.github.io-master/build --check-stamp-file F:/raytracing.github.io-master/build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\CMakeCXXInformation.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\CMakeCommonLanguageInclude.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\CMakeGenericSystem.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\CMakeInitializeConfigs.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\CMakeLanguageInformation.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\CMakeRCInformation.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\CMakeSystemSpecificInformation.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\CMakeSystemSpecificInitialize.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\Compiler\CMakeCommonCompilerMacros.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\Compiler\MSVC-CXX.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\Platform\Windows-MSVC-CXX.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\Platform\Windows-MSVC.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\Platform\Windows.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\Platform\WindowsPaths.cmake;F:\raytracing.github.io-master\build\CMakeFiles\3.22.2\CMakeCXXCompiler.cmake;F:\raytracing.github.io-master\build\CMakeFiles\3.22.2\CMakeRCCompiler.cmake;F:\raytracing.github.io-master\build\CMakeFiles\3.22.2\CMakeSystem.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">F:\raytracing.github.io-master\build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">Building Custom Rule F:/raytracing.github.io-master/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">setlocal
+"D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\bin\cmake.exe" -SF:/raytracing.github.io-master -BF:/raytracing.github.io-master/build --check-stamp-file F:/raytracing.github.io-master/build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\CMakeCXXInformation.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\CMakeCommonLanguageInclude.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\CMakeGenericSystem.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\CMakeInitializeConfigs.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\CMakeLanguageInformation.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\CMakeRCInformation.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\CMakeSystemSpecificInformation.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\CMakeSystemSpecificInitialize.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\Compiler\CMakeCommonCompilerMacros.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\Compiler\MSVC-CXX.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\Platform\Windows-MSVC-CXX.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\Platform\Windows-MSVC.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\Platform\Windows.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\Platform\WindowsPaths.cmake;F:\raytracing.github.io-master\build\CMakeFiles\3.22.2\CMakeCXXCompiler.cmake;F:\raytracing.github.io-master\build\CMakeFiles\3.22.2\CMakeRCCompiler.cmake;F:\raytracing.github.io-master\build\CMakeFiles\3.22.2\CMakeSystem.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">F:\raytracing.github.io-master\build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='MinSizeRel|x64'">false</LinkObjects>
+      <Message Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">Building Custom Rule F:/raytracing.github.io-master/CMakeLists.txt</Message>
+      <Command Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">setlocal
+"D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\bin\cmake.exe" -SF:/raytracing.github.io-master -BF:/raytracing.github.io-master/build --check-stamp-file F:/raytracing.github.io-master/build/CMakeFiles/generate.stamp
+if %errorlevel% neq 0 goto :cmEnd
+:cmEnd
+endlocal &amp; call :cmErrorLevel %errorlevel% &amp; goto :cmDone
+:cmErrorLevel
+exit /b %1
+:cmDone
+if %errorlevel% neq 0 goto :VCEnd</Command>
+      <AdditionalInputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\CMakeCXXInformation.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\CMakeCommonLanguageInclude.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\CMakeGenericSystem.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\CMakeInitializeConfigs.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\CMakeLanguageInformation.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\CMakeRCInformation.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\CMakeSystemSpecificInformation.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\CMakeSystemSpecificInitialize.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\Compiler\CMakeCommonCompilerMacros.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\Compiler\MSVC-CXX.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\Platform\Windows-MSVC-CXX.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\Platform\Windows-MSVC.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\Platform\Windows.cmake;D:\Program Files\cmake-3.22.2-windows-x86_64\cmake-3.22.2-windows-x86_64\share\cmake-3.22\Modules\Platform\WindowsPaths.cmake;F:\raytracing.github.io-master\build\CMakeFiles\3.22.2\CMakeCXXCompiler.cmake;F:\raytracing.github.io-master\build\CMakeFiles\3.22.2\CMakeRCCompiler.cmake;F:\raytracing.github.io-master\build\CMakeFiles\3.22.2\CMakeSystem.cmake;%(AdditionalInputs)</AdditionalInputs>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">F:\raytracing.github.io-master\build\CMakeFiles\generate.stamp</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='RelWithDebInfo|x64'">false</LinkObjects>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="F:\raytracing.github.io-master\build\ZERO_CHECK.vcxproj">
+      <Project>{F4A75DF6-18BF-301C-B112-4AA8945A4C9F}</Project>
+      <Name>ZERO_CHECK</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </ProjectReference>
+    <ProjectReference Include="F:\raytracing.github.io-master\build\cos_cubed.vcxproj">
+      <Project>{43F0233C-8CE9-33C4-A1ED-BA8A3588A3A1}</Project>
+      <Name>cos_cubed</Name>
+    </ProjectReference>
+    <ProjectReference Include="F:\raytracing.github.io-master\build\cos_density.vcxproj">
+      <Project>{57483FCB-3246-3EA7-8F7A-3C2618E1B29D}</Project>
+      <Name>cos_density</Name>
+    </ProjectReference>
+    <ProjectReference Include="F:\raytracing.github.io-master\build\inOneWeekend.vcxproj">
+      <Project>{7E181C84-9498-3559-A9A1-F336ED0A8470}</Project>
+      <Name>inOneWeekend</Name>
+    </ProjectReference>
+    <ProjectReference Include="F:\raytracing.github.io-master\build\integrate_x_sq.vcxproj">
+      <Project>{9459F846-76B7-34C5-8A1A-F5E52A400722}</Project>
+      <Name>integrate_x_sq</Name>
+    </ProjectReference>
+    <ProjectReference Include="F:\raytracing.github.io-master\build\pi.vcxproj">
+      <Project>{14BB4848-77B5-3042-B75B-FF296954048B}</Project>
+      <Name>pi</Name>
+    </ProjectReference>
+    <ProjectReference Include="F:\raytracing.github.io-master\build\sphere_importance.vcxproj">
+      <Project>{8668EBE8-3F33-3547-8EAA-9FA75CF85C05}</Project>
+      <Name>sphere_importance</Name>
+    </ProjectReference>
+    <ProjectReference Include="F:\raytracing.github.io-master\build\sphere_plot.vcxproj">
+      <Project>{771E8CAD-4474-3619-ACF8-010ED4C83456}</Project>
+      <Name>sphere_plot</Name>
+    </ProjectReference>
+    <ProjectReference Include="F:\raytracing.github.io-master\build\theNextWeek.vcxproj">
+      <Project>{E455FD0F-DC06-3525-95D5-0D7701F1614C}</Project>
+      <Name>theNextWeek</Name>
+    </ProjectReference>
+    <ProjectReference Include="F:\raytracing.github.io-master\build\theRestOfYourLife.vcxproj">
+      <Project>{A7D8F953-E833-3B58-80E4-EFCC458927B6}</Project>
+      <Name>theRestOfYourLife</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>
