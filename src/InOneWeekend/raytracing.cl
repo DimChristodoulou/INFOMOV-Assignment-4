@@ -22,6 +22,8 @@ typedef struct cl_hit_record {
 	float3 normal;
 	float2 padding0;
 	Material mat;
+	bool front_face;
+	bool3 padding1;
 } hit_record;
 
 typedef struct cl_sphere
@@ -99,6 +101,11 @@ float3 random_in_unit_sphere(uint *seed) {
     }*/
 }
 
+void set_face_normal(hit_record* rec, Ray* ray, float3 outward_normal, bool )
+{
+	rec->front_face = dot(ray->direction, outward_normal) < 0;
+	rec->normal = rec->front_face ? outward_normal : -outward_normal;
+}
 float SquaredLength(float3 vec) {
 	return vec.x * vec.x + vec.y * vec.y + vec.z * vec.z;
 }
@@ -117,10 +124,37 @@ bool scatter(Material *mat, Ray ray, hit_record *hit, float3 *attenuation, Ray *
 	else if(mat->materialType == 2){
 	}
 }
-
-bool sphere_hit(Ray r, float t_min, float t_max, hit_record* rec)
+bool sphere_hit(Sphere* sphere,
+	Ray* r, float t_min, float t_max, hit_record* rec)
 {
-	//float3 oc = r.origin - 
+	float3 center = sphere->center;
+	float3 radius = sphere->radius;
+	float3 oc = ray->origin - center;
+	float a = SquaredLength(ray->direction);
+	float half_b = dot(oc, ray->direction);
+	float c = SquaredLength(oc) - radius * radius;
+
+	float discriminant = half_b * half_b - a * c;
+	if (discriminant < 0) return false;
+	float sqrtd = sqrt(discriminant);
+
+
+	float root = (-half_b - sqrtd) / a;
+	if (root < t_min || t_max < root)
+	{
+		root = (-half_b + sqrtd) / a;
+		if (root < t_min || t_max < root)
+			return false;
+	}
+
+	rec->t = root;
+	rec->p = ray->origin + root * ray->direction;
+	float3 outward_normal = (rec->p - center) / radius;
+	set_face_normal(rec, ray, outward_normal);
+	rec->mat = sphere->mat;
+	return true;
+
+
 }
 
 
@@ -132,7 +166,7 @@ bool world_hit(Ray* ray, float t_min, float t_max, hit_record* rec, int nSpheres
 	for (int i = 0; i < nSpheres; i++)
 	{
 		Sphere sphere = sphereBuffer[i];
-		if (true)
+		if (sphere_hit(&sphere, t_min, t_max, rec))
 		{
 			hit_anything = true;
 			closest_so_far = temp_rec.t;
@@ -157,7 +191,6 @@ float4 ray_color(Ray* r, int nSpheres, Sphere* sphereBuffer)
 	}
 	float3 unit_direction = normalize(ray.direction);
 	float t = 0.5 * (unit_direction.y + 1.0);
-	rec = r;
 	return (1.0 - t)* (float4)(1.0, 1.0, 1.0, 0.0) + t * (float4)(0.5, 0.7, 1.0, 0.0);
 }
 
