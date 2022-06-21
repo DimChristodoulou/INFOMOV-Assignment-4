@@ -7,17 +7,32 @@ typedef struct cl_Ray
 	float t;
 } Ray;
 
-typedef struct cl_hit_record {
-	float3 point;
-	float3 normal;
-} hit_record;
-
 typedef struct cl_material {
 	float3 albedo;
-	double fuzz;
-	double ir;
-	int materialType;	// 0 for lambertian, 1 for metal, 2 for dielectric
+	float fuzz;
+	float ir;
+	float3 padding0;
+	int materialType;
+	int3 padding1;	// 0 for lambertian, 1 for metal, 2 for dielectric
 } Material;
+
+
+typedef struct cl_hit_record {
+	float3 p;
+	float3 normal;
+	float2 padding0;
+	Material mat;
+} hit_record;
+
+typedef struct cl_sphere
+{
+	float3 center;
+	float radius;
+	Material mat;
+
+} Sphere;
+
+
 
 
  uint Next(uint u)
@@ -104,22 +119,58 @@ bool scatter(Material *mat, Ray ray, hit_record *hit, float3 *attenuation, Ray *
 	}
 }
 
+bool sphere_hit(Ray r, float t_min, float t_max, hit_record* rec)
+{
+	float3 oc = r.origin - 
+}
+
+
+bool world_hit(Ray* ray, float t_min, float t_max, hit_record* rec)
+{
+	hit_record temp_rec;
+	bool hit_anything = false;
+	float closest_so_far = t_max;
+	for (int i = 0; i < nSpheres; i++)
+	{
+		Sphere sphere = sphereBuffer[i];
+		if (sphere_hit(sphere.center, sphere.radius, (*ray), t_min, closest_so_far, temp_rec))
+		{
+			hit_anything = true;
+			closest_so_far = temp_rec.t;
+			(*rec) = temp_rec
+		}
+	}
+
+	return hit_anything;
+}
 float4 ray_color(Ray* r)
 {
 	hit_record rec;
-	if (hit(0.001, 10000000000.0, rec))
+	if (world_hit(r, 0.001, 10000000000.0, &rec))
 	{
-
+		float4 attenuation;
+		Ray scattered;
+		if (scatter(r, rec, &attenuation, &scattered))
+			return attenuation;
+		return (float4)(0.0, 0.0, 0.0, 0.0);
 	}
+	float3 unit_direction = normalize(ray.direction);
+	float t = 0.5 * (unit_direction.y + 1.0);
+	rec = r;
+	return (1.0 - t)* (float4)(1.0, 1.0, 1.0, 0.0) + t * (float4)(0.5, 0.7, 1.0, 0.0);
+	
+	
 }
 
 __kernel void raytrace(__global float4* colorBuffer,
+						__global Sphere* sphereBuffer,
 						int image_width,
 						int image_height,
 						float3 vertical,
 						float3 horizontal,
 						float3 lower_left_corner,
-						float3 origin)
+						float3 origin,
+						int nSpheres)
 {
 	uint id = get_global_id(0);/*get_global_id(0) / 32;*/
 	int row = id % image_width; //This will depend on how the memory is laid out in the 2d array. 
