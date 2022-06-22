@@ -7,7 +7,7 @@ typedef struct cl_Ray
 	float t;
 } Ray;
 
-typedef struct cl_material {
+typedef struct __attribute__ ((__packed__)) cl_material {
 	float3 albedo;
 	float fuzz;
 	float ir;
@@ -29,7 +29,7 @@ typedef struct cl_hit_record {
 	bool padding3;
 } hit_record;
 
-typedef struct cl_sphere
+typedef struct __attribute__ ((__packed__)) cl_sphere
 {
 	float3 center;
 	float radius;
@@ -239,10 +239,9 @@ __kernel void raytrace(	__global float4* colorBuffer,
 
 	uint seed = Next(0x12345678 + id);
 	// float3 dir = (float3)(0.0f, 0.0f, 0.0f);
-	// if(get_local_id(0)==0){
-	// 	float3 dir = random_in_unit_sphere(&seed);
-	// 	//dir = (float3)(1, 1, 1);
-	// 	printf(" %u, %f %f, %f\n",get_group_id(0), dir.x, dir.y, dir.z);
+	// if(get_global_id(0)==0){
+	// 	Sphere s = sphereBuffer[0];
+	// 	printf("%d %f %f %f %f %f %f %f %d\n", sizeof(Sphere), s.center.x, s.center.y, s.center.z, s.radius, s.mat.albedo.x, s.mat.albedo.y, s.mat.albedo.z, s.mat.materialType);
 	// }
 
 	Ray ray;

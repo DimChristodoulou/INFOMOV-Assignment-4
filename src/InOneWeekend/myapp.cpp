@@ -40,18 +40,18 @@ typedef struct cl_sphere
 color ray_color(const ray& r, const hittable& world, int depth) {
     hit_record rec;
 
-    //// If we've exceeded the ray bounce limit, no more light is gathered.
-    //if (depth <= 0)
-    //    return color(0,0,0);
+    // If we've exceeded the ray bounce limit, no more light is gathered.
+    /*if (depth <= 0)
+        return color(0,0,0);
 
-    //if (world.hit(r, 0.001, infinity, rec)) {
-    //    ray scattered;
-    //    color attenuation;
-    //    if (rec.mat_ptr->scatter(r, rec, attenuation, scattered))
-    //        return attenuation * ray_color(scattered, world, depth-1);
-    //    return color(0,0,0);
-    //}
-
+    if (world.hit(r, 0.001, infinity, rec)) {
+        ray scattered;
+        color attenuation;
+        if (rec.mat_ptr->scatter(r, rec, attenuation, scattered))
+            return attenuation * ray_color(scattered, world, depth-1);
+        return color(0,0,0);
+    }*/
+    
     vec3 unit_direction = unit_vector(r.direction());
     auto t = 0.5 * (unit_direction.y() + 1.0);
     return (1.0 - t) * color(1.0, 1.0, 1.0) + t * color(0.5, 0.7, 1.0);
@@ -112,8 +112,8 @@ int main(){
     
     Kernel::InitCL();
     Kernel kernel("src/InOneWeekend/raytracing.cl", "raytrace");
+
     // Image
-    
     const float aspect_ratio = 16.0 / 9.0;
     const int image_width = 1080;
     const int image_height = 607;
@@ -144,20 +144,25 @@ int main(){
         lambertian* mat = dynamic_cast<lambertian*>(obj->mat_ptr.get());
         spheres[i].mat.albedo = float3(mat->albedo.x(), mat->albedo.y(), mat->albedo.z());
         spheres[i].mat.materialType = 0;
+
+        //std::cerr << sizeof(CL_Sphere) << "  " << spheres[i].center.x << " " << spheres[i].center.y << " " << spheres[i].center.z << " " << spheres[i].radius << " " << spheres[i].mat.albedo.x << " " << spheres[i].mat.albedo.y << " " << spheres[i].mat.albedo.z << " " << spheres[i].mat.materialType << std::endl << std::flush;
     }
 
     cl_int error;
     float4* pixel_color = new float4[nPixels];
     //std::cerr << sizeof(CL_Sphere) << std::endl;
     //std::cerr << sizeof(Material) << " " << sizeof(float3) << " " << sizeof(float) << std::endl;
+    
     // GPU Buffers
     cl_mem colorBuffer = clCreateBuffer(Kernel::GetContext(), CL_MEM_READ_WRITE, nPixels * sizeof(float4), 0, 0);
-    cl_mem sphereBuffer = clCreateBuffer(Kernel::GetContext(), CL_MEM_READ_WRITE, nPixels * sizeof(float4), 0, 0);
+    cl_mem sphereBuffer = clCreateBuffer(Kernel::GetContext(), CL_MEM_READ_WRITE, world.objects.size() * sizeof(CL_Sphere), 0, 0);
     
     //error = clEnqueueWriteBuffer(Kernel::GetQueue(), colorBuffer, true, 0, nPixels * sizeof(float4), pixel_color, 0, 0, 0);
     error = clEnqueueWriteBuffer(Kernel::GetQueue(), sphereBuffer, true, 0, world.objects.size() * sizeof(CL_Sphere), spheres, 0, 0, 0);
+    
     /*std::cerr << error << ' ' << std::flush;
     std::cerr << sizeof(float4) << " " << sizeof(float) << std::flush;*/
+
     int numOfSpheres = world.objects.size();
 
     kernel.SetArgument(0, &colorBuffer);
@@ -170,6 +175,7 @@ int main(){
     kernel.SetArgument(7, cam.get_origin());
     kernel.SetArgument(8, max_depth);
     kernel.SetArgument(9, numOfSpheres);           // TODO: SET THIS TO NUMBER OF SPHERES
+
     Timer t;
     kernel.Run(image_width * image_height * samples_per_pixel, samples_per_pixel);
     clFinish(kernel.GetQueue());
@@ -177,33 +183,30 @@ int main(){
     error = clEnqueueReadBuffer(Kernel::GetQueue(), colorBuffer, true, 0, nPixels * sizeof(float4), pixel_color, 0, 0, 0);
     std::cerr << error << ' ' << std::flush;
 
-    // Render
-    /*for (int k = 0; k < 1; k++)
-    {*/
-        
-        std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
+    // Render   
+    std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
 
-        for (int j = image_height - 1; j >= 0; --j) {
-            //std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
-            for (int i = 0; i < image_width; ++i) {
-                //color pixel_color(0, 0, 0);
-                /*for (int s = 0; s < samples_per_pixel; ++s) {
-                    auto u = (i + random_double()) / (image_width - 1);
-                    auto v = (j + random_double()) / (image_height - 1);
-                    ray r = cam.get_ray(u, v);
-                    pixel_color += ray_color(r, world, max_depth);
-                }*/
-                //write_color(std::cout, pixel_color, samples_per_pixel);
-                int index = j * image_width + i;
-                write_color(std::cout, color(pixel_color[index].x, pixel_color[index].y, pixel_color[index].z), samples_per_pixel);
+    for (int j = image_height - 1; j >= 0; --j) {
+        std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
+        for (int i = 0; i < image_width; ++i) {
+            // RUN ON CPU
+            /*color pixel_color(0, 0, 0);
+            for (int s = 0; s < samples_per_pixel; ++s) {
+                auto u = (i + random_double()) / (image_width - 1);
+                auto v = (j + random_double()) / (image_height - 1);
+                ray r = cam.get_ray(u, v);
+                pixel_color += ray_color(r, world, max_depth);
             }
+            write_color(std::cout, pixel_color, samples_per_pixel);*/
+
+            // RUN ON GPU
+            int index = j * image_width + i;
+            write_color(std::cout, color(pixel_color[index].x, pixel_color[index].y, pixel_color[index].z), samples_per_pixel);
         }
+    }
        
-        std::cerr << "frame time:" << t.elapsed() * 1000 << " msec" << std::endl;
-        std::cerr << "\nDone.\n";
-       /* delete t;
-        t = NULL;*/
-    /*}*/
+    std::cerr << "frame time:" << t.elapsed() * 1000 << " msec" << std::endl;
+    std::cerr << "\nDone.\n";
    
     system("pause");
 
