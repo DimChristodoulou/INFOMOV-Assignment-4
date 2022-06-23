@@ -121,7 +121,7 @@ int main(){
     const float aspect_ratio = 16.0 / 9.0;
     const int image_width = 1080;
     const int image_height = 607;
-    const int samples_per_pixel = 32;
+    const int samples_per_pixel = 1;
     const int max_depth = 50;
     static int nPixels = image_width * image_height;
 
@@ -146,7 +146,7 @@ int main(){
         spheres[i].radius = obj->radius;
         
         material* generic_mat = dynamic_cast<material*>(obj->mat_ptr.get());
-        std::cerr << "MATTYPE " << generic_mat->get_mat_type() << std::endl << std::flush;
+        
         if (generic_mat->get_mat_type() == 0) {
             lambertian* lamb = dynamic_cast<lambertian*>(obj->mat_ptr.get());
             spheres[i].mat.albedo = float3(lamb->albedo.x(), lamb->albedo.y(), lamb->albedo.z());
@@ -173,11 +173,11 @@ int main(){
     //std::cerr << sizeof(CL_Sphere) << std::endl;
     //std::cerr << sizeof(Material) << " " << sizeof(float3) << " " << sizeof(float) << std::endl;
 
-    std::cerr << world.objects.size() << std::endl << std::flush;
+    /*std::cerr << world.objects.size() << std::endl << std::flush;
     for (size_t i = 0; i < world.objects.size(); i++)
     {
         std::cerr << spheres[i].center.x << " " << spheres[i].center.y << " " << spheres[i].center.z << std::endl << std::flush;
-    }
+    }*/
 
     // GPU Buffers
     cl_mem colorBuffer = clCreateBuffer(Kernel::GetContext(), CL_MEM_READ_WRITE, nPixels * sizeof(float4), 0, 0);
@@ -217,8 +217,8 @@ int main(){
         std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
         for (int i = 0; i < image_width; ++i) {
             // RUN ON CPU
-           // color pixel_color(0, 0, 0);
-            /*for (int s = 0; s < samples_per_pixel; ++s) {
+            /*color pixel_color(0, 0, 0);
+            for (int s = 0; s < samples_per_pixel; ++s) {
                 auto u = (i + random_double()) / (image_width - 1);
                 auto v = (j + random_double()) / (image_height - 1);
                 ray r = cam.get_ray(u, v);

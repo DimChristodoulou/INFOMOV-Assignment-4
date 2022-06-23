@@ -1,4 +1,5 @@
 #define PI 3.141592653589793238462643383279 
+#define NSAMPLES 1
 
 typedef struct cl_Ray
 {
@@ -174,20 +175,19 @@ bool scatter(Ray *ray, hit_record *hit, float3 *attenuation, Ray *scattered, uin
 		scattered->origin = hit->p;
 		scattered->direction = reflected + (hit->mat.fuzz*random_in_unit_sphere(seed));
 		scattered->t = 0.0001;
-
 		*attenuation = hit->mat.albedo;
 		return (dot(scattered->direction, hit->normal) > 0);
 	}
 	// Dielectric
 	else if(hit->mat.materialType == 2){
 		*attenuation = (float3)(1.0, 1.0, 1.0);
-		float refraction_ratio = hit->front_face ? (1.0/hit->mat.ir) : hit->mat.ir;
-		float3 unit_direction = UnitVector(ray->direction);
+		float refraction_ratio = !hit->front_face ? (1.0/hit->mat.ir) : hit->mat.ir;
+		
+		float3 unit_direction = normalize(ray->direction);
 		float cos_theta = fmin(dot(-unit_direction, hit->normal), 1.0);
 		float sin_theta = sqrt(1.0 - cos_theta*cos_theta);
 
 		bool cannot_refract = refraction_ratio * sin_theta > 1.0;
-		float3 direction;
 
 		if(cannot_refract || reflectance(cos_theta, refraction_ratio) > random_float(seed)){
 			scattered->direction = reflect(unit_direction, hit->normal);
@@ -196,9 +196,9 @@ bool scatter(Ray *ray, hit_record *hit, float3 *attenuation, Ray *scattered, uin
 			scattered->direction = refract(unit_direction, hit->normal, refraction_ratio);
 		}
 
-		scattered->origin = hit->p;
 		scattered->t = 0.0001;
-
+		scattered->origin = hit->p;
+		return true;
 	}
 }
 
@@ -266,18 +266,17 @@ float4 ray_color(Ray* r, int nSpheres, Sphere* sphereBuffer, uint *seed, bool* h
 		if (scatter(r, &rec, &attenuation, &scattered, seed))
 		{
 			(*r) = scattered;
-			return  attenuation;
+			return attenuation;
 
 		}
 
 		return (float4)(0.0, 0.0, 0.0, 0.0);
 	}
-	
-	
+
 	float3 unit_direction = normalize(r->direction);
 	float t = 0.5 * (unit_direction.y + 1.0);
 	*hit_skybox = true;
-	return (1.0 - t)* (float4)(1.0, 1.0, 1.0, 0.0) + t * (float4)(1.0, 0.7, 0.5, 0.0);
+	return (1.0 - t)* (float4)(1.0, 1.0, 1.0, 0.0) + t * (float4)(0.5, 0.7, 1.0, 0.0);
 }
 
 __kernel void raytrace(	__global float4* colorBuffer,
@@ -303,11 +302,15 @@ __kernel void raytrace(	__global float4* colorBuffer,
 
 	uint seed = Next(0x12345678 + id);
 	// float3 dir = (float3)(0.0f, 0.0f, 0.0f);
-	//if(get_global_id(0)==0){
-	// 	Sphere s = sphereBuffer[0];
+	if(get_global_id(0)==0){
+		// for(size_t i =0; i< nSpheres; i++){
+		// 	if(sphereBuffer[i].mat.materialType == 2){
+		// 		printf("IR: %f \n", sphereBuffer[i].mat.ir);
+		// 	}
+		// }
 	// 	printf("%d %f %f %f %f %f %f %f %d\n", sizeof(Sphere), s.center.x, s.center.y, s.center.z, s.radius, s.mat.albedo.x, s.mat.albedo.y, s.mat.albedo.z, s.mat.materialType);
 	//	printf("%d\n", nSpheres);
-	//}
+	}
 
 	Ray ray;
 	ray.origin = origin;
@@ -318,16 +321,15 @@ __kernel void raytrace(	__global float4* colorBuffer,
 	//float t = 0.5 * (unit_direction.y + 1.0);
 	//float4 color = (0.7f, 0.65f, 0.9f, 0.0f);
 	
-	__local float4 _sharedMemory[32];
+	__local float4 _sharedMemory[NSAMPLES];
 	float4 rtCol = (float4)(1.0f, 1.0f, 1.0f, 1.0f);
 	bool hit_skybox = false;
-	for (int i = 0; i < maxDepth-1; i++)
+	for (int i = 0; i < maxDepth; i++)
 	{
 		if (!hit_skybox)
 			rtCol *= ray_color(&ray, nSpheres, sphereBuffer, &seed, &hit_skybox);
-		else if	(!hit_skybox && (i == maxDepth - 2))
+		else if	(!hit_skybox && (i == maxDepth - 1))
 			rtCol = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
-		
 		/*else
 			rtCol = rtCol;*/
 
@@ -339,10 +341,11 @@ __kernel void raytrace(	__global float4* colorBuffer,
 	{
 		//printf("%f\n", _sharedMemory[get_local_id(0)]);
 	}
+
 	if (get_local_id(0) == 0)
 	{
 		float4 color = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
-		for (int i = 0; i < 32; i++)
+		for (int i = 0; i < NSAMPLES; i++)
 			color += _sharedMemory[i];
 		colorBuffer[id] = color;
 		//if (get_group_id(0) == 0)
