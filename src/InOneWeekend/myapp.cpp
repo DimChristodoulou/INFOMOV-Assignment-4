@@ -97,11 +97,13 @@ hittable_list random_scene() {
     auto material1 = make_shared<dielectric>(1.5);
     world.add(make_shared<sphere>(point3(0, 1, 0), 1.0, material1));
 
-    auto material2 = make_shared<lambertian>(color(0.4, 0.2, 0.1));
-    world.add(make_shared<sphere>(point3(-4, 1, 0), 1.0, material2));
+   
 
     auto material3 = make_shared<metal>(color(0.7, 0.6, 0.5), 0.0);
     world.add(make_shared<sphere>(point3(4, 1, 0), 1.0, material3));
+
+    auto material2 = make_shared<lambertian>(color(0.4, 0.2, 0.1));
+    world.add(make_shared<sphere>(point3(-4, 1, 0), 1.0, material2));
 
     /*for (size_t i = 0; i < world.objects.size(); i++)
     {
@@ -121,7 +123,7 @@ int main(){
     const float aspect_ratio = 16.0 / 9.0;
     const int image_width = 1080;
     const int image_height = 607;
-    const int samples_per_pixel = 1;
+    const int samples_per_pixel = 32;
     const int max_depth = 50;
     static int nPixels = image_width * image_height;
 

@@ -1,5 +1,5 @@
 #define PI 3.141592653589793238462643383279 
-#define NSAMPLES 1
+#define NSAMPLES 32
 
 typedef struct cl_Ray
 {
@@ -160,7 +160,7 @@ bool scatter(Ray *ray, hit_record *hit, float3 *attenuation, Ray *scattered, uin
 		}
 
 		scattered->origin = hit->p;
-		scattered->direction = scatter_direction;
+		scattered->direction = normalize(scatter_direction);
 		scattered->t = 0.0001;
 		*attenuation = hit->mat.albedo;
 		return true;
@@ -173,7 +173,7 @@ bool scatter(Ray *ray, hit_record *hit, float3 *attenuation, Ray *scattered, uin
 		// return (dot(scattered.direction(), rec.normal) > 0);
 		float3 reflected = reflect(UnitVector(ray->direction), hit->normal);
 		scattered->origin = hit->p;
-		scattered->direction = reflected + (hit->mat.fuzz*random_in_unit_sphere(seed));
+		scattered->direction = normalize(reflected + (hit->mat.fuzz*random_in_unit_sphere(seed)));
 		scattered->t = 0.0001;
 		*attenuation = hit->mat.albedo;
 		return (dot(scattered->direction, hit->normal) > 0);
@@ -181,7 +181,7 @@ bool scatter(Ray *ray, hit_record *hit, float3 *attenuation, Ray *scattered, uin
 	// Dielectric
 	else if(hit->mat.materialType == 2){
 		*attenuation = (float3)(1.0, 1.0, 1.0);
-		float refraction_ratio = !hit->front_face ? (1.0/hit->mat.ir) : hit->mat.ir;
+		float refraction_ratio = hit->front_face ? (1.0/hit->mat.ir) : hit->mat.ir;
 		
 		float3 unit_direction = normalize(ray->direction);
 		float cos_theta = fmin(dot(-unit_direction, hit->normal), 1.0);
@@ -190,10 +190,10 @@ bool scatter(Ray *ray, hit_record *hit, float3 *attenuation, Ray *scattered, uin
 		bool cannot_refract = refraction_ratio * sin_theta > 1.0;
 
 		if(cannot_refract || reflectance(cos_theta, refraction_ratio) > random_float(seed)){
-			scattered->direction = reflect(unit_direction, hit->normal);
+			scattered->direction = normalize(reflect(unit_direction, hit->normal));
 		}
 		else{
-			scattered->direction = refract(unit_direction, hit->normal, refraction_ratio);
+			scattered->direction = normalize(refract(unit_direction, hit->normal, refraction_ratio));
 		}
 
 		scattered->t = 0.0001;
@@ -218,8 +218,7 @@ bool sphere_hit(Sphere* sphere,
 
 
 	float root = (-half_b - sqrtd) / a;
-	if (root < t_min || t_max < root)
-	{
+	if (root < t_min || t_max < root) {
 		root = (-half_b + sqrtd) / a;
 		if (root < t_min || t_max < root)
 			return false;
@@ -244,7 +243,7 @@ bool world_hit(Ray* ray, float t_min, float t_max, hit_record* rec, int nSpheres
 	for (int i = 0; i < nSpheres; i++)
 	{
 		Sphere sphere = sphereBuffer[i];
-		if (sphere_hit(&sphere, ray, t_min, t_max, rec))
+		if (sphere_hit(&sphere, ray, t_min, closest_so_far, &temp_rec))
 		{
 			hit_anything = true;
 			closest_so_far = temp_rec.t;
@@ -276,7 +275,7 @@ float4 ray_color(Ray* r, int nSpheres, Sphere* sphereBuffer, uint *seed, bool* h
 	float3 unit_direction = normalize(r->direction);
 	float t = 0.5 * (unit_direction.y + 1.0);
 	*hit_skybox = true;
-	return (1.0 - t)* (float4)(1.0, 1.0, 1.0, 0.0) + t * (float4)(0.5, 0.7, 1.0, 0.0);
+	return (1.0 - t)* (float4)(1.0, 1.0, 1.0, 0.0) + t * (float4)(1.0, 0.7, 0.5, 0.0);
 }
 
 __kernel void raytrace(	__global float4* colorBuffer,
