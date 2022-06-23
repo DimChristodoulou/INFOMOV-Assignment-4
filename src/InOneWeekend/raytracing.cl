@@ -1,5 +1,5 @@
 #define PI 3.141592653589793238462643383279 
-#define NSAMPLES 32
+#define NSAMPLES 1
 
 typedef struct cl_Ray
 {
@@ -74,7 +74,8 @@ float length_squared(float3 vec) {
 
 float random_float(uint *seed) {
     // Returns a random real in [0,1).
-     return *seed * 2.3283064365387e-10f;
+	*seed = Next(*seed);
+     return  *seed * 2.3283064365387e-10f;
 }
 
 float random_float_in_range(uint *seed, float min, float max) {
@@ -173,7 +174,7 @@ bool scatter(Ray *ray, hit_record *hit, float3 *attenuation, Ray *scattered, uin
 		// return (dot(scattered.direction(), rec.normal) > 0);
 		float3 reflected = reflect(UnitVector(ray->direction), hit->normal);
 		scattered->origin = hit->p;
-		scattered->direction = normalize(reflected + (hit->mat.fuzz*random_in_unit_sphere(seed)));
+		scattered->direction = (reflected + (hit->mat.fuzz*random_in_unit_sphere(seed)));
 		scattered->t = 0.0001;
 		*attenuation = hit->mat.albedo;
 		return (dot(scattered->direction, hit->normal) > 0);
@@ -278,6 +279,24 @@ float4 ray_color(Ray* r, int nSpheres, Sphere* sphereBuffer, uint *seed, bool* h
 	return (1.0 - t)* (float4)(1.0, 1.0, 1.0, 0.0) + t * (float4)(1.0, 0.7, 0.5, 0.0);
 }
 
+float3 random_in_unit_disk(uint *seed){
+	float u = random_float(seed);
+	float v = random_float(seed) * 2 * PI;
+	
+	//printf("%f %f\n", u*cos(v), u*sin(v));
+	return (float3)(u*cos(v), u*sin(v), 0);
+}
+
+Ray get_ray(float s, float t, float3 u, float3 v, float3 origin, float3 lower_left_corner, float3 horizontal, float3 vertical, float lens_radius, uint *seed) {
+	float3 rd = lens_radius * random_in_unit_disk(seed);
+	float3 offset = u * rd.x + v * rd.y;
+	Ray r;
+	r.origin = origin + offset;
+	r.direction = lower_left_corner + s*horizontal + t*vertical - origin -offset;
+	r.t = random_float_in_range(seed, 0.000, 0);
+	return r;
+}
+
 __kernel void raytrace(	__global float4* colorBuffer,
 						__global Sphere* sphereBuffer,
 						int image_width,
@@ -288,39 +307,42 @@ __kernel void raytrace(	__global float4* colorBuffer,
 						float3 origin,
 						int maxDepth,
 						int nSpheres,
-						int nSamples)
+						int nSamples,
+						float lens_radius,
+						float3 w,
+						float3 u,
+						float3 v)
 {
 	uint id = get_group_id(0);/*get_global_id(0) / 32;*/
+	uint seed = 0x12345678 + get_global_id(0);
+    seed = Next(seed);
+	// if(get_global_id(0)== 0)
+	// {
+	// 	for(int i = 0; i < 100; i++)
+	// 	{
+	// 		float x  = random_float_in_range(&seed, 0.0, 100.0);
+	// 		printf("%f\n", x);
+	// 	}
+	// }
 	int row = id % image_width; //This will depend on how the memory is laid out in the 2d array. 
     int col = id / image_width; //If it's not row-major, then we'll need to flip these two statements.
 
-	float u =  (float) row  / ((float)image_width - 1.0);
-	float v = (float)col / ((float)image_height - 1.0);
+	
 
-	//printf("col %d, row %d , colorBuffer %d\n", col, row, id);
+	float s =  (random_float(&seed) + (float)row)  / ((float)image_width - 1.0);
+	float t = (random_float(&seed) +(float)col) / ((float)image_height - 1.0);
 
-	uint seed = Next(0x12345678 + id);
-	// float3 dir = (float3)(0.0f, 0.0f, 0.0f);
-	if(get_global_id(0)==0){
-		// for(size_t i =0; i< nSpheres; i++){
-		// 	if(sphereBuffer[i].mat.materialType == 2){
-		// 		printf("IR: %f \n", sphereBuffer[i].mat.ir);
-		// 	}
-		// }
-	// 	printf("%d %f %f %f %f %f %f %f %d\n", sizeof(Sphere), s.center.x, s.center.y, s.center.z, s.radius, s.mat.albedo.x, s.mat.albedo.y, s.mat.albedo.z, s.mat.materialType);
-	//	printf("%d\n", nSpheres);
-	}
-
-	Ray ray;
-	ray.origin = origin;
-	ray.direction = lower_left_corner + u * horizontal + v * vertical - origin;
-	ray.t = 0.0001;
+	Ray ray = get_ray(s, t, u, v, origin, lower_left_corner, horizontal, vertical, lens_radius, &seed);
+	// Ray ray;
+	// ray.origin = origin;
+	// ray.direction = lower_left_corner + s * horizontal + t * vertical - origin;
+	// ray.t = 0.0001;
 
 	//float3 unit_direction = normalize(ray.direction);
 	//float t = 0.5 * (unit_direction.y + 1.0);
 	//float4 color = (0.7f, 0.65f, 0.9f, 0.0f);
 	
-	__local float4 _sharedMemory[NSAMPLES];
+	__local float4 _sharedMemory[32];
 	float4 rtCol = (float4)(1.0f, 1.0f, 1.0f, 1.0f);
 	bool hit_skybox = false;
 	for (int i = 0; i < maxDepth; i++)
@@ -336,15 +358,12 @@ __kernel void raytrace(	__global float4* colorBuffer,
 	_sharedMemory[get_local_id(0)] = rtCol;
 	barrier(CLK_LOCAL_MEM_FENCE);
 	
-	if (get_group_id(0) == 0)
-	{
-		//printf("%f\n", _sharedMemory[get_local_id(0)]);
-	}
+	
 
 	if (get_local_id(0) == 0)
 	{
 		float4 color = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
-		for (int i = 0; i < NSAMPLES; i++)
+		for (int i = 0; i < 32; i++)
 			color += _sharedMemory[i];
 		colorBuffer[id] = color;
 		//if (get_group_id(0) == 0)

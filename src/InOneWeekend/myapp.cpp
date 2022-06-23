@@ -134,6 +134,26 @@ int main(){
     auto dist_to_focus = 10.0;
     auto aperture = 0.1;
 
+    vec3 w = unit_vector(lookfrom - lookat);
+    vec3 u = unit_vector(cross(vup, w));
+    vec3 v = cross(w, u);
+
+    float3 fw = float3(
+        w.x(),
+        w.y(),
+        w.z());
+
+    float3 fu = float3(
+        u.x(),
+        u.y(),
+        u.z());
+
+    float3 fv = float3(
+        v.x(),
+        v.y(),
+        v.z());
+
+
     camera cam(lookfrom, lookat, vup, 20, aspect_ratio, aperture, dist_to_focus);
 
     // World
@@ -192,7 +212,8 @@ int main(){
     std::cerr << sizeof(float4) << " " << sizeof(float) << std::flush;*/
 
     int numOfSpheres = world.objects.size();
-    
+    float lens_radius = aperture / 2;
+
     kernel.SetArgument(0, &colorBuffer);
     kernel.SetArgument(1, &sphereBuffer);        // TODO: SET THIS TO A BUFFER FOR SPHERE DATA
     kernel.SetArgument(2, image_width);
@@ -204,6 +225,10 @@ int main(){
     kernel.SetArgument(8, max_depth);
     kernel.SetArgument(9, numOfSpheres);     
     kernel.SetArgument(10, samples_per_pixel);
+    kernel.SetArgument(11, lens_radius);
+    kernel.SetArgument(12, fw);
+    kernel.SetArgument(13, fu);
+    kernel.SetArgument(14, fv);
 
     Timer t;
     kernel.Run(image_width * image_height * samples_per_pixel, samples_per_pixel);
@@ -214,7 +239,9 @@ int main(){
 
     // Render   
     std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
-
+    //auto tu = (0 + random_double()) / (image_width - 1);
+    //auto tv = (0 + random_double()) / (image_height - 1);
+    //ray r = cam.get_ray(tu, tv);
     for (int j = image_height - 1; j >= 0; --j) {
         std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
         for (int i = 0; i < image_width; ++i) {
