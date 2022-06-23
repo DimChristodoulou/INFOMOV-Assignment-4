@@ -54,7 +54,7 @@ color ray_color(const ray& r, const hittable& world, int depth) {
     
     vec3 unit_direction = unit_vector(r.direction());
     auto t = 0.5 * (unit_direction.y() + 1.0);
-    return (1.0 - t) * color(1.0, 1.0, 1.0) + t * color(0.5, 0.7, 1.0);
+    return (1.0 - t) * color(1.0, 1.0, 1.0) + t * color(1.0, 0.7, 0.5);
 }
 
 
@@ -174,7 +174,8 @@ int main(){
     kernel.SetArgument(6, cam.get_lower_left_corner());
     kernel.SetArgument(7, cam.get_origin());
     kernel.SetArgument(8, max_depth);
-    kernel.SetArgument(9, numOfSpheres);           // TODO: SET THIS TO NUMBER OF SPHERES
+    kernel.SetArgument(9, numOfSpheres);     
+    kernel.SetArgument(10, samples_per_pixel);
 
     Timer t;
     kernel.Run(image_width * image_height * samples_per_pixel, samples_per_pixel);
