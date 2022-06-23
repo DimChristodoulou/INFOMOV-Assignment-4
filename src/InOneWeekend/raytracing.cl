@@ -160,7 +160,7 @@ bool scatter(Ray *ray, hit_record *hit, float3 *attenuation, Ray *scattered, uin
 
 		scattered->origin = hit->p;
 		scattered->direction = scatter_direction;
-		//scattered->t = 0.0001;
+		scattered->t = 0.0001;
 		*attenuation = hit->mat.albedo;
 		return true;
 	}
@@ -173,6 +173,8 @@ bool scatter(Ray *ray, hit_record *hit, float3 *attenuation, Ray *scattered, uin
 		float3 reflected = reflect(UnitVector(ray->direction), hit->normal);
 		scattered->origin = hit->p;
 		scattered->direction = reflected + (hit->mat.fuzz*random_in_unit_sphere(seed));
+		scattered->t = 0.0001;
+
 		*attenuation = hit->mat.albedo;
 		return (dot(scattered->direction, hit->normal) > 0);
 	}
@@ -195,6 +197,8 @@ bool scatter(Ray *ray, hit_record *hit, float3 *attenuation, Ray *scattered, uin
 		}
 
 		scattered->origin = hit->p;
+		scattered->t = 0.0001;
+
 	}
 }
 
@@ -268,11 +272,12 @@ float4 ray_color(Ray* r, int nSpheres, Sphere* sphereBuffer, uint *seed, bool* h
 
 		return (float4)(0.0, 0.0, 0.0, 0.0);
 	}
-
+	
+	
 	float3 unit_direction = normalize(r->direction);
 	float t = 0.5 * (unit_direction.y + 1.0);
-	hit_skybox = true;
-	return (1.0 - t)* (float4)(1.0, 1.0, 1.0, 0.0) + t * (float4)(0.5, 0.7, 1.0, 0.0);
+	*hit_skybox = true;
+	return (1.0 - t)* (float4)(1.0, 1.0, 1.0, 0.0) + t * (float4)(1.0, 0.7, 0.5, 0.0);
 }
 
 __kernel void raytrace(	__global float4* colorBuffer,
@@ -313,15 +318,16 @@ __kernel void raytrace(	__global float4* colorBuffer,
 	//float t = 0.5 * (unit_direction.y + 1.0);
 	//float4 color = (0.7f, 0.65f, 0.9f, 0.0f);
 	
-	__local float4 _sharedMemory[1];
+	__local float4 _sharedMemory[32];
 	float4 rtCol = (float4)(1.0f, 1.0f, 1.0f, 1.0f);
 	bool hit_skybox = false;
-	for (int i = 0; i < maxDepth; i++)
+	for (int i = 0; i < maxDepth-1; i++)
 	{
 		if (!hit_skybox)
 			rtCol *= ray_color(&ray, nSpheres, sphereBuffer, &seed, &hit_skybox);
-		else if	(!hit_skybox && (i == maxDepth - 1))
+		else if	(!hit_skybox && (i == maxDepth - 2))
 			rtCol = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
+		
 		/*else
 			rtCol = rtCol;*/
 
@@ -336,7 +342,7 @@ __kernel void raytrace(	__global float4* colorBuffer,
 	if (get_local_id(0) == 0)
 	{
 		float4 color = (float4)(0.0f, 0.0f, 0.0f, 0.0f);
-		for (int i = 0; i < 1; i++)
+		for (int i = 0; i < 32; i++)
 			color += _sharedMemory[i];
 		colorBuffer[id] = color;
 		//if (get_group_id(0) == 0)

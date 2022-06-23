@@ -121,8 +121,8 @@ int main(){
     const float aspect_ratio = 16.0 / 9.0;
     const int image_width = 1080;
     const int image_height = 607;
-    const int samples_per_pixel = 1;
-    const int max_depth = 2;
+    const int samples_per_pixel = 32;
+    const int max_depth = 50;
     static int nPixels = image_width * image_height;
 
     // Camera
@@ -217,8 +217,8 @@ int main(){
         std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
         for (int i = 0; i < image_width; ++i) {
             // RUN ON CPU
-            /*color pixel_color(0, 0, 0);
-            for (int s = 0; s < samples_per_pixel; ++s) {
+           // color pixel_color(0, 0, 0);
+            /*for (int s = 0; s < samples_per_pixel; ++s) {
                 auto u = (i + random_double()) / (image_width - 1);
                 auto v = (j + random_double()) / (image_height - 1);
                 ray r = cam.get_ray(u, v);
