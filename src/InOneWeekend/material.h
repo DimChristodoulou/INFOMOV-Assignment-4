@@ -18,12 +18,15 @@ struct hit_record;
 
 
 class material {
+    private:
+        int mat_type;
     public:
         virtual bool scatter(
             const ray& r_in, const hit_record& rec, color& attenuation, ray& scattered
         ) const = 0;
 
         // TODO: ADD A VFUNC TO RETURN MAT TYPE
+        virtual int get_mat_type() const = 0;
 };
 
 
@@ -45,6 +48,10 @@ class lambertian : public material {
             return true;
         }
 
+        virtual int get_mat_type() const override {
+            return 0;
+        }
+
     public:
         color albedo;
 };
@@ -61,6 +68,10 @@ class metal : public material {
             scattered = ray(rec.p, reflected + fuzz*random_in_unit_sphere());
             attenuation = albedo;
             return (dot(scattered.direction(), rec.normal) > 0);
+        }
+
+        virtual int get_mat_type() const override {
+            return 1;
         }
 
     public:
@@ -93,6 +104,10 @@ class dielectric : public material {
 
             scattered = ray(rec.p, direction);
             return true;
+        }
+
+        virtual int get_mat_type() const override {
+            return 2;
         }
 
     public:

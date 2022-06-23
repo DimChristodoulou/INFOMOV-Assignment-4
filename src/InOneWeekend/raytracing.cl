@@ -103,11 +103,17 @@ float3 random_in_unit_sphere(uint *seed) {
     }*/
 }
 
-void set_face_normal(hit_record* rec, Ray* ray, float3 outward_normal)
-{
-	rec->front_face = dot(ray->direction, outward_normal) < 0;
-	rec->normal = rec->front_face ? outward_normal : -outward_normal;
+void set_face_normal(hit_record* rec, Ray* ray, float3 outward_normal) {
+	rec->front_face = (dot(ray->direction, outward_normal) < 0);
+
+	if(rec->front_face){
+		rec->normal = outward_normal;
+	}
+	else {
+		rec->normal = -outward_normal;
+	}
 }
+
 float3 random_unit_vector(uint *seed) {
     return UnitVector(random_in_unit_sphere(seed));
 }
@@ -120,6 +126,24 @@ bool near_zero(float3 vec) {
 	// Return true if the vector is close to zero in all dimensions.
 	const float s = 1e-8f;
 	return (fabs(vec.x) < s) && (fabs(vec.y) < s) && (fabs(vec.z) < s);
+}
+
+float3 reflect(float3 v, float3 n) {
+    return v - 2*dot(v, n)*n;
+}
+
+float reflectance(float cosine, float ref_idx) {
+	// Use Schlick's approximation for reflectance.
+	float r0 = (1-ref_idx) / (1+ref_idx);
+	r0 = r0*r0;
+	return r0 + (1-r0)*pow((1 - cosine),5);
+}
+
+float3 refract(float3 uv, float3 n, float etai_over_etat) {
+    float cos_theta = fmin(dot(-uv, n), 1.0);
+    float3 r_out_perp =  etai_over_etat * (uv + cos_theta*n);
+    float3 r_out_parallel = -sqrt(fabs(1.0 - SquaredLength(r_out_perp))) * n;
+    return r_out_perp + r_out_parallel;
 }
 
 bool scatter(Ray *ray, hit_record *hit, float3 *attenuation, Ray *scattered, uint *seed){
@@ -142,9 +166,35 @@ bool scatter(Ray *ray, hit_record *hit, float3 *attenuation, Ray *scattered, uin
 	}
 	// Metal
 	else if(hit->mat.materialType == 1){
+		// vec3 reflected = reflect(unit_vector(r_in.direction()), rec.normal);
+		// scattered = ray(rec.p, reflected + fuzz*random_in_unit_sphere());
+		// attenuation = albedo;
+		// return (dot(scattered.direction(), rec.normal) > 0);
+		float3 reflected = reflect(UnitVector(ray->direction), hit->normal);
+		scattered->origin = hit->p;
+		scattered->direction = reflected + (hit->mat.fuzz*random_in_unit_sphere(seed));
+		*attenuation = hit->mat.albedo;
+		return (dot(scattered->direction, hit->normal) > 0);
 	}
 	// Dielectric
 	else if(hit->mat.materialType == 2){
+		*attenuation = (float3)(1.0, 1.0, 1.0);
+		float refraction_ratio = hit->front_face ? (1.0/hit->mat.ir) : hit->mat.ir;
+		float3 unit_direction = UnitVector(ray->direction);
+		float cos_theta = fmin(dot(-unit_direction, hit->normal), 1.0);
+		float sin_theta = sqrt(1.0 - cos_theta*cos_theta);
+
+		bool cannot_refract = refraction_ratio * sin_theta > 1.0;
+		float3 direction;
+
+		if(cannot_refract || reflectance(cos_theta, refraction_ratio) > random_float(seed)){
+			scattered->direction = reflect(unit_direction, hit->normal);
+		}
+		else{
+			scattered->direction = refract(unit_direction, hit->normal, refraction_ratio);
+		}
+
+		scattered->origin = hit->p;
 	}
 }
 
@@ -248,10 +298,11 @@ __kernel void raytrace(	__global float4* colorBuffer,
 
 	uint seed = Next(0x12345678 + id);
 	// float3 dir = (float3)(0.0f, 0.0f, 0.0f);
-	// if(get_global_id(0)==0){
+	//if(get_global_id(0)==0){
 	// 	Sphere s = sphereBuffer[0];
 	// 	printf("%d %f %f %f %f %f %f %f %d\n", sizeof(Sphere), s.center.x, s.center.y, s.center.z, s.radius, s.mat.albedo.x, s.mat.albedo.y, s.mat.albedo.z, s.mat.materialType);
-	// }
+	//	printf("%d\n", nSpheres);
+	//}
 
 	Ray ray;
 	ray.origin = origin;

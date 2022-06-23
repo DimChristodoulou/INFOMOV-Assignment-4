@@ -41,7 +41,7 @@ color ray_color(const ray& r, const hittable& world, int depth) {
     hit_record rec;
 
     // If we've exceeded the ray bounce limit, no more light is gathered.
-    /*if (depth <= 0)
+    if (depth <= 0)
         return color(0,0,0);
 
     if (world.hit(r, 0.001, infinity, rec)) {
@@ -50,7 +50,7 @@ color ray_color(const ray& r, const hittable& world, int depth) {
         if (rec.mat_ptr->scatter(r, rec, attenuation, scattered))
             return attenuation * ray_color(scattered, world, depth-1);
         return color(0,0,0);
-    }*/
+    }
     
     vec3 unit_direction = unit_vector(r.direction());
     auto t = 0.5 * (unit_direction.y() + 1.0);
@@ -80,29 +80,33 @@ hittable_list random_scene() {
                 }
                 else if (choose_mat < 0.95) {
                     // metal
-                    /*auto albedo = color::random(0.5, 1);
+                    auto albedo = color::random(0.5, 1);
                     auto fuzz = random_double(0, 0.5);
                     sphere_material = make_shared<metal>(albedo, fuzz);
-                    world.add(make_shared<sphere>(center, 0.2, sphere_material));*/
+                    world.add(make_shared<sphere>(center, 0.2, sphere_material));
                 }
                 else {
                     // glass
-                    /*sphere_material = make_shared<dielectric>(1.5);
-                    world.add(make_shared<sphere>(center, 0.2, sphere_material));*/
+                    sphere_material = make_shared<dielectric>(1.5);
+                    world.add(make_shared<sphere>(center, 0.2, sphere_material));
                 }
             }
         }
     }
 
-    /*auto material1 = make_shared<dielectric>(1.5);
-    world.add(make_shared<sphere>(point3(0, 1, 0), 1.0, material1));*/
+    auto material1 = make_shared<dielectric>(1.5);
+    world.add(make_shared<sphere>(point3(0, 1, 0), 1.0, material1));
 
     auto material2 = make_shared<lambertian>(color(0.4, 0.2, 0.1));
     world.add(make_shared<sphere>(point3(-4, 1, 0), 1.0, material2));
 
-    /*auto material3 = make_shared<metal>(color(0.7, 0.6, 0.5), 0.0);
-    world.add(make_shared<sphere>(point3(4, 1, 0), 1.0, material3));*/
+    auto material3 = make_shared<metal>(color(0.7, 0.6, 0.5), 0.0);
+    world.add(make_shared<sphere>(point3(4, 1, 0), 1.0, material3));
 
+    /*for (size_t i = 0; i < world.objects.size(); i++)
+    {
+        std::cerr << dynamic_cast<sphere*>(world.objects[i].get())->center << std::endl << std::flush;
+    }*/
     return world;
 }
 TheApp* CreateApp() { return new MyApp(); }
@@ -118,7 +122,7 @@ int main(){
     const int image_width = 1080;
     const int image_height = 607;
     const int samples_per_pixel = 1;
-    const int max_depth = 50;
+    const int max_depth = 2;
     static int nPixels = image_width * image_height;
 
     // Camera
@@ -141,9 +145,25 @@ int main(){
         spheres[i].center = float3(obj->center.x(), obj->center.y(), obj->center.z());
         spheres[i].radius = obj->radius;
         
-        lambertian* mat = dynamic_cast<lambertian*>(obj->mat_ptr.get());
-        spheres[i].mat.albedo = float3(mat->albedo.x(), mat->albedo.y(), mat->albedo.z());
-        spheres[i].mat.materialType = 0;
+        material* generic_mat = dynamic_cast<material*>(obj->mat_ptr.get());
+        std::cerr << "MATTYPE " << generic_mat->get_mat_type() << std::endl << std::flush;
+        if (generic_mat->get_mat_type() == 0) {
+            lambertian* lamb = dynamic_cast<lambertian*>(obj->mat_ptr.get());
+            spheres[i].mat.albedo = float3(lamb->albedo.x(), lamb->albedo.y(), lamb->albedo.z());
+            spheres[i].mat.materialType = 0;
+        }
+        else if (generic_mat->get_mat_type() == 1) {
+            metal* met = dynamic_cast<metal*>(obj->mat_ptr.get());
+            spheres[i].mat.albedo = float3(met->albedo.x(), met->albedo.y(), met->albedo.z());
+            spheres[i].mat.fuzz = met->fuzz;
+            spheres[i].mat.materialType = 1;
+        }
+        else if (generic_mat->get_mat_type() == 2){
+            dielectric* diel = dynamic_cast<dielectric*>(obj->mat_ptr.get());
+            spheres[i].mat.albedo = float3(0, 0, 0);
+            spheres[i].mat.ir = diel->ir;
+            spheres[i].mat.materialType = 2;
+        }
 
         //std::cerr << sizeof(CL_Sphere) << "  " << spheres[i].center.x << " " << spheres[i].center.y << " " << spheres[i].center.z << " " << spheres[i].radius << " " << spheres[i].mat.albedo.x << " " << spheres[i].mat.albedo.y << " " << spheres[i].mat.albedo.z << " " << spheres[i].mat.materialType << std::endl << std::flush;
     }
@@ -152,7 +172,13 @@ int main(){
     float4* pixel_color = new float4[nPixels];
     //std::cerr << sizeof(CL_Sphere) << std::endl;
     //std::cerr << sizeof(Material) << " " << sizeof(float3) << " " << sizeof(float) << std::endl;
-    
+
+    std::cerr << world.objects.size() << std::endl << std::flush;
+    for (size_t i = 0; i < world.objects.size(); i++)
+    {
+        std::cerr << spheres[i].center.x << " " << spheres[i].center.y << " " << spheres[i].center.z << std::endl << std::flush;
+    }
+
     // GPU Buffers
     cl_mem colorBuffer = clCreateBuffer(Kernel::GetContext(), CL_MEM_READ_WRITE, nPixels * sizeof(float4), 0, 0);
     cl_mem sphereBuffer = clCreateBuffer(Kernel::GetContext(), CL_MEM_READ_WRITE, world.objects.size() * sizeof(CL_Sphere), 0, 0);
@@ -164,7 +190,7 @@ int main(){
     std::cerr << sizeof(float4) << " " << sizeof(float) << std::flush;*/
 
     int numOfSpheres = world.objects.size();
-
+    
     kernel.SetArgument(0, &colorBuffer);
     kernel.SetArgument(1, &sphereBuffer);        // TODO: SET THIS TO A BUFFER FOR SPHERE DATA
     kernel.SetArgument(2, image_width);
