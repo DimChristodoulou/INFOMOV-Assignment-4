@@ -410,7 +410,7 @@
    </workloads>
   </target_settings>
   <analysis_type_settings>
-   <selected_analysis_type_path>C:\Program Files (x86)\Intel\oneAPI\vtune\2022.2.0\config\analysis_type\hotspots.cfg</selected_analysis_type_path>
+   <selected_analysis_type_path>C:\Program Files (x86)\Intel\oneAPI\vtune\2022.2.0\config\analysis_type\microarchitecture_exploration.cfg</selected_analysis_type_path>
    <localhost>
     <launch>
      <at_start_point>
@@ -488,6 +488,63 @@
        <contextValue>
         <id>stackSizeCollect</id>
         <value>0</value>
+       </contextValue>
+      </knob_values>
+     </at_start_point>
+     <at_start_point>
+      <at_path>C:\Program Files (x86)\Intel\oneAPI\vtune\2022.2.0\config\analysis_type\microarchitecture_exploration.cfg</at_path>
+      <knob_values>
+       <contextValue>
+        <id>allowedViewpoints</id>
+        <value>%SNBGeneralExplorationViewpointName,%SNBBandwidthViewpointName,%PMUEventsViewpointName</value>
+       </contextValue>
+       <contextValue>
+        <id>collectBadSpeculation</id>
+        <value type="bool">true</value>
+       </contextValue>
+       <contextValue>
+        <id>collectCoreBound</id>
+        <value type="bool">true</value>
+       </contextValue>
+       <contextValue>
+        <id>collectFrontendBound</id>
+        <value type="bool">true</value>
+       </contextValue>
+       <contextValue>
+        <id>collectMemoryBW</id>
+        <value type="bool">false</value>
+       </contextValue>
+       <contextValue>
+        <id>collectMemoryBound</id>
+        <value type="bool">true</value>
+       </contextValue>
+       <contextValue>
+        <id>collectRetiring</id>
+        <value type="bool">true</value>
+       </contextValue>
+       <contextValue>
+        <id>dramBandwidthLimitsAT</id>
+        <value type="bool">true</value>
+       </contextValue>
+       <contextValue>
+        <id>enableStackCollect</id>
+        <value type="bool">false</value>
+       </contextValue>
+       <contextValue>
+        <id>groupForSelectMetrics</id>
+        <value type="null"></value>
+       </contextValue>
+       <contextValue>
+        <id>initialViewpoint</id>
+        <value>%SNBGeneralExplorationViewpointName</value>
+       </contextValue>
+       <contextValue>
+        <id>pmuSamplingCountSwitch</id>
+        <value>detailed</value>
+       </contextValue>
+       <contextValue>
+        <id>samplingInterval</id>
+        <value type="double">0.8</value>
        </contextValue>
       </knob_values>
      </at_start_point>

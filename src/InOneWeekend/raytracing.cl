@@ -1,7 +1,7 @@
 #define PI 3.141592653589793238462643383279 
 #define NSAMPLES 1
 
-typedef struct cl_Ray
+typedef struct __attribute__ ((__packed__)) cl_Ray
 {
 	float3 origin;
 	float3 direction;
@@ -10,15 +10,13 @@ typedef struct cl_Ray
 
 typedef struct __attribute__ ((__packed__)) cl_material {
 	float3 albedo;
-	float fuzz;
-	float ir;
-	float3 padding0;
-	int materialType;
-	int3 padding1;	// 0 for lambertian, 1 for metal, 2 for dielectric
+	float fuzz_ir;
+	float padding1, padding2;
+	uint materialType; // 0 for lambertian, 1 for metal, 2 for dielectric
 } Material;
 
 
-typedef struct cl_hit_record {
+typedef struct __attribute__ ((__packed__)) cl_hit_record {
 	float3 p;
 	float3 normal;
 	float t;
@@ -174,7 +172,7 @@ bool scatter(Ray *ray, hit_record *hit, float3 *attenuation, Ray *scattered, uin
 		// return (dot(scattered.direction(), rec.normal) > 0);
 		float3 reflected = reflect(UnitVector(ray->direction), hit->normal);
 		scattered->origin = hit->p;
-		scattered->direction = (reflected + (hit->mat.fuzz*random_in_unit_sphere(seed)));
+		scattered->direction = (reflected + (hit->mat.fuzz_ir*random_in_unit_sphere(seed)));
 		scattered->t = 0.0001;
 		*attenuation = hit->mat.albedo;
 		return (dot(scattered->direction, hit->normal) > 0);
@@ -182,7 +180,7 @@ bool scatter(Ray *ray, hit_record *hit, float3 *attenuation, Ray *scattered, uin
 	// Dielectric
 	else if(hit->mat.materialType == 2){
 		*attenuation = (float3)(1.0, 1.0, 1.0);
-		float refraction_ratio = hit->front_face ? (1.0/hit->mat.ir) : hit->mat.ir;
+		float refraction_ratio = hit->front_face ? (1.0/hit->mat.fuzz_ir) : hit->mat.fuzz_ir;
 		
 		float3 unit_direction = normalize(ray->direction);
 		float cos_theta = fmin(dot(-unit_direction, hit->normal), 1.0);

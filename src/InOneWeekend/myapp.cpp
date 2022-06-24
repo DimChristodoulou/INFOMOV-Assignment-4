@@ -23,11 +23,9 @@
 
 typedef struct cl_material {
     float3 albedo;
-    float fuzz;
-    float ir;
-    float3 padding0;
-    int materialType;
-    int3 padding1;	// 0 for lambertian, 1 for metal, 2 for dielectric
+    float fuzz_ir;
+    float padding1, padding2;   // TODO: MAYBE REMOVE THE EXTRA PADDING
+    uint materialType; // 0 for lambertian, 1 for metal, 2 for dielectric
 } Material;
 
 typedef struct cl_sphere
@@ -97,18 +95,12 @@ hittable_list random_scene() {
     auto material1 = make_shared<dielectric>(1.5);
     world.add(make_shared<sphere>(point3(0, 1, 0), 1.0, material1));
 
-   
-
     auto material3 = make_shared<metal>(color(0.7, 0.6, 0.5), 0.0);
     world.add(make_shared<sphere>(point3(4, 1, 0), 1.0, material3));
 
     auto material2 = make_shared<lambertian>(color(0.4, 0.2, 0.1));
     world.add(make_shared<sphere>(point3(-4, 1, 0), 1.0, material2));
 
-    /*for (size_t i = 0; i < world.objects.size(); i++)
-    {
-        std::cerr << dynamic_cast<sphere*>(world.objects[i].get())->center << std::endl << std::flush;
-    }*/
     return world;
 }
 TheApp* CreateApp() { return new MyApp(); }
@@ -138,24 +130,8 @@ int main(){
     vec3 u = unit_vector(cross(vup, w));
     vec3 v = cross(w, u);
 
-    float3 fw = float3(
-        w.x(),
-        w.y(),
-        w.z());
-
-    float3 fu = float3(
-        u.x(),
-        u.y(),
-        u.z());
-
-    float3 fv = float3(
-        v.x(),
-        v.y(),
-        v.z());
-
-
     camera cam(lookfrom, lookat, vup, 20, aspect_ratio, aperture, dist_to_focus);
-
+    
     // World
     auto world = random_scene();
 
@@ -177,45 +153,31 @@ int main(){
         else if (generic_mat->get_mat_type() == 1) {
             metal* met = dynamic_cast<metal*>(obj->mat_ptr.get());
             spheres[i].mat.albedo = float3(met->albedo.x(), met->albedo.y(), met->albedo.z());
-            spheres[i].mat.fuzz = met->fuzz;
+            spheres[i].mat.fuzz_ir = met->fuzz;
             spheres[i].mat.materialType = 1;
         }
         else if (generic_mat->get_mat_type() == 2){
             dielectric* diel = dynamic_cast<dielectric*>(obj->mat_ptr.get());
             spheres[i].mat.albedo = float3(0, 0, 0);
-            spheres[i].mat.ir = diel->ir;
+            spheres[i].mat.fuzz_ir = diel->ir;
             spheres[i].mat.materialType = 2;
         }
-
-        //std::cerr << sizeof(CL_Sphere) << "  " << spheres[i].center.x << " " << spheres[i].center.y << " " << spheres[i].center.z << " " << spheres[i].radius << " " << spheres[i].mat.albedo.x << " " << spheres[i].mat.albedo.y << " " << spheres[i].mat.albedo.z << " " << spheres[i].mat.materialType << std::endl << std::flush;
     }
 
     cl_int error;
     float4* pixel_color = new float4[nPixels];
-    //std::cerr << sizeof(CL_Sphere) << std::endl;
-    //std::cerr << sizeof(Material) << " " << sizeof(float3) << " " << sizeof(float) << std::endl;
-
-    /*std::cerr << world.objects.size() << std::endl << std::flush;
-    for (size_t i = 0; i < world.objects.size(); i++)
-    {
-        std::cerr << spheres[i].center.x << " " << spheres[i].center.y << " " << spheres[i].center.z << std::endl << std::flush;
-    }*/
 
     // GPU Buffers
     cl_mem colorBuffer = clCreateBuffer(Kernel::GetContext(), CL_MEM_READ_WRITE, nPixels * sizeof(float4), 0, 0);
     cl_mem sphereBuffer = clCreateBuffer(Kernel::GetContext(), CL_MEM_READ_WRITE, world.objects.size() * sizeof(CL_Sphere), 0, 0);
-    
-    //error = clEnqueueWriteBuffer(Kernel::GetQueue(), colorBuffer, true, 0, nPixels * sizeof(float4), pixel_color, 0, 0, 0);
+
     error = clEnqueueWriteBuffer(Kernel::GetQueue(), sphereBuffer, true, 0, world.objects.size() * sizeof(CL_Sphere), spheres, 0, 0, 0);
-    
-    /*std::cerr << error << ' ' << std::flush;
-    std::cerr << sizeof(float4) << " " << sizeof(float) << std::flush;*/
 
     int numOfSpheres = world.objects.size();
     float lens_radius = aperture / 2;
 
     kernel.SetArgument(0, &colorBuffer);
-    kernel.SetArgument(1, &sphereBuffer);        // TODO: SET THIS TO A BUFFER FOR SPHERE DATA
+    kernel.SetArgument(1, &sphereBuffer);
     kernel.SetArgument(2, image_width);
     kernel.SetArgument(3, image_height);
     kernel.SetArgument(4, cam.get_vertical());
@@ -226,9 +188,12 @@ int main(){
     kernel.SetArgument(9, numOfSpheres);     
     kernel.SetArgument(10, samples_per_pixel);
     kernel.SetArgument(11, lens_radius);
+    float3 fw = float3(w.x(), w.y(), w.z());
     kernel.SetArgument(12, fw);
-    kernel.SetArgument(13, fu);
-    kernel.SetArgument(14, fv);
+    fw = float3(u.x(), u.y(), u.z());
+    kernel.SetArgument(13, fw);
+    fw = float3(v.x(), v.y(), v.z());
+    kernel.SetArgument(14, fw);
 
     Timer t;
     kernel.Run(image_width * image_height * samples_per_pixel, samples_per_pixel);
@@ -239,9 +204,7 @@ int main(){
 
     // Render   
     std::cout << "P3\n" << image_width << ' ' << image_height << "\n255\n";
-    //auto tu = (0 + random_double()) / (image_width - 1);
-    //auto tv = (0 + random_double()) / (image_height - 1);
-    //ray r = cam.get_ray(tu, tv);
+
     for (int j = image_height - 1; j >= 0; --j) {
         std::cerr << "\rScanlines remaining: " << j << ' ' << std::flush;
         for (int i = 0; i < image_width; ++i) {
