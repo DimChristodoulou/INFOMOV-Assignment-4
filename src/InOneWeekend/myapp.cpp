@@ -114,7 +114,7 @@ int main(){
     // Image
     const float aspect_ratio = 16.0 / 9.0;
     const int image_width = 1080;
-    const int image_height = 607;
+    const int image_height = static_cast<int>(image_width / aspect_ratio);
     const int samples_per_pixel = 32;
     const int max_depth = 50;
     static int nPixels = image_width * image_height;
@@ -227,6 +227,6 @@ int main(){
     std::cerr << "frame time:" << t.elapsed() * 1000 << " msec" << std::endl;
     std::cerr << "\nDone.\n";
    
-    system("pause");
+    //system("pause");
 
 }
